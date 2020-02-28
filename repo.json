@@ -1,0 +1,15 @@
+[{
+  "Name": "navbar",
+  "Description": "Plugin to navigate through a file using a navbar.",
+  "Tags": ["navigation", "classes", "functions"],
+  "Website": "https://github.com/",
+  "Versions": [
+    {
+      "Version": "0.0.1",
+      "Url": "https://github.com/",
+      "Require": {
+        "micro": ">=2.0.0-1"
+      }
+    },
+  ]
+}]
