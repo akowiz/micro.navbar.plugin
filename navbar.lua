@@ -5,6 +5,8 @@ local config = import("micro/config")
 local util = import("micro/util")
 local buffer = import("micro/buffer")
 
+local DISPLAY_NAME = 'navbar'
+
 -- Holds the micro.CurPane() we're manipulating
 local tree_view = nil
 
@@ -12,14 +14,14 @@ local tree_view = nil
 
 -- Clear out all stuff in Micro's messenger
 local function clear_messenger()
-	messenger:Reset()
-	messenger:Clear()
+    -- messenger:Reset()
+	-- messenger:Clear()
 end
 
 -- open_tree setup's the view
 local function open_tree()
 	-- Open a new Vsplit (on the very left)
-	micro.CurPane():VSplitIndex(buffer.NewBuffer("", "navbar"), false)
+	micro.CurPane():VSplitIndex(buffer.NewBuffer("", DISPLAY_NAME), false)
 	-- Save the new view so we can access it later
 	tree_view = micro.CurPane()
 
@@ -40,7 +42,7 @@ local function open_tree()
     tree_view.Buf:SetOptionNative("autosave", false)
     -- Don't show the statusline to differentiate the view from normal views
     tree_view.Buf:SetOptionNative("statusformatr", "")
-    tree_view.Buf:SetOptionNative("statusformatl", "filemanager")
+    tree_view.Buf:SetOptionNative("statusformatl", DISPLAY_NAME)
     tree_view.Buf:SetOptionNative("scrollbar", false)
 
 	-- Fill the scanlist, and then print its contents to tree_view
