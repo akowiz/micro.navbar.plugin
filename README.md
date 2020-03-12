@@ -3,3 +3,8 @@
 *Written in Lua*
 
 Navigation bar (class and functions) for micro editor.
+
+
+Supported Languages
+-------------------
+- Python
