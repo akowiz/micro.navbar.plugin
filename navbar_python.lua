@@ -33,6 +33,17 @@ function string:split(sSeparator, nMax, bRegexp)
 end
 
 
+-- Export the python structure of a buffer containing python code
+function string:export_structure_python()
+    local aTable = {}
+
+    for k, v in pairs({'classes', 'functions', 'constants'}) do
+        aTable[v] = {}
+        table.insert(aTable[v], 'value')
+    end
+
+    return aTable
+end
 
 
 return {
@@ -40,4 +51,5 @@ return {
   FUNCTIONS = FUNCTIONS,
   CONSTANTS = CONSTANTS,
   split = split,
+  export_structure_python = export_structure_python,
 }
