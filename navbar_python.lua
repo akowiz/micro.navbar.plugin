@@ -73,7 +73,8 @@ function nbp.Node:__repr()
 end
 
 function nbp.compare_node(a, b)
-    return a.name < b.name
+    -- Compare the kind of node, then the name
+    return (a.kind < b.kind) or ((a.kind == b.kind) and (a.name < b.name))
 end
 
 
