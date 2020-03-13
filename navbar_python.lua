@@ -69,7 +69,11 @@ function nbp.Node:__tostring()
 end
 
 function nbp.Node:__repr()
-    return 'Node(' .. table.concat({self.name, self.kind, self.line, self.indent, self.parent}, ', ') .. ')'
+    return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent, self.parent}, ', ') .. ')'
+end
+
+function nbp.compare_node(a, b)
+    return a.name < b.name
 end
 
 
@@ -77,11 +81,69 @@ end
 function string:export_structure_python()
     local aTable = {}
 
-    for k, v in pairs({'classes', 'functions', 'constants'}) do
+    for k, v in ipairs({'classes', 'functions', 'constants'}) do
         aTable[v] = {}
-        empty = nbp.Node:new()
-        table.insert(aTable[v], empty)
     end
+
+    local classes = aTable['classes']
+    local functions = aTable['functions']
+    local constants = aTable['constants']
+
+    local parents = { [0] = nil }   -- table of parents indexed by indent
+
+    -- Extract structure from the buffer
+
+    local lines = self:split('\n')
+    for nb, line in ipairs(lines) do
+
+        local indent, name = string.match(line, "^(%s*)class%s*([_%a]-)%s*[(:]")
+        if name then
+            if (indent == '') or (indent == 0) then
+                classes[#classes+1] = nbp.Node:new(name, nbp.T_CLASS, nb, indent:len())
+            else
+                -- print("Ignore class "..name)
+                -- print("indent = "..tostring(indent))
+                -- We ignore the classes defined inside other items for the moment.
+            end
+        end
+
+        local indent, name = string.match(line, "^(%s*)def%s*([_%a]-)%s*%(")
+        if name then
+            if (indent == '') or (indent == 0) then
+                functions[#functions+1] = nbp.Node:new(name, nbp.T_FUNCTION, nb, indent:len())
+            else
+                -- print("Ignore function "..name)
+                -- print("indent = "..tostring(indent))
+                -- We ignore the functions defined inside other items for the moment.
+            end
+        end
+
+        local name = string.match(line, "^([_%a]-)%s*=[^=]")
+        if name then
+            -- Notes: we only considers constants with indent of 0
+            constants[#constants+1] = nbp.Node:new(name, nbp.T_CONSTANT, nb, 0)
+        end
+
+    end
+
+    -- Sort the tables
+
+    table.sort(classes, nbp.compare_node)
+    table.sort(functions, nbp.compare_node)
+    table.sort(constants, nbp.compare_node)
+
+--[[
+    print()
+    for _, node in ipairs(classes) do
+        print(node)
+    end
+    for _, node in ipairs(functions) do
+        print(node)
+    end
+    for _, node in ipairs(constants) do
+        print(node)
+    end
+--]]
 
     return aTable
 end
