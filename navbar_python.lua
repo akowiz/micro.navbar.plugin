@@ -64,19 +64,24 @@ function nbp.Node:new(n, k, l, i, p)
     return o
 end
 
+function nbp.Node:__lt(node)
+    -- Allow us to sort the nodes by kind, and then by name
+    return (self.kind < node.kind) or ((self.kind == node.kind) and (self.name < node.name))
+end
+
+function nbp.Node:__repr()
+    -- Allow us to display the nodes in a readable way.
+    return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent, self.parent}, ', ') .. ')'
+end
+
 function nbp.Node:__tostring()
     return self:__repr()
 end
 
-function nbp.Node:__repr()
-    return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent, self.parent}, ', ') .. ')'
-end
 
-function nbp.compare_node(a, b)
-    -- Compare the kind of node, then the name
-    return (a.kind < b.kind) or ((a.kind == b.kind) and (a.name < b.name))
-end
-
+-------------------------------------------------------------------------------
+-- Main Functions
+-------------------------------------------------------------------------------
 
 -- Export the python structure of a buffer containing python code
 function string:export_structure_python()
@@ -129,9 +134,9 @@ function string:export_structure_python()
 
     -- Sort the tables
 
-    table.sort(classes, nbp.compare_node)
-    table.sort(functions, nbp.compare_node)
-    table.sort(constants, nbp.compare_node)
+    table.sort(classes)
+    table.sort(functions)
+    table.sort(constants)
 
 --[[
     print()
