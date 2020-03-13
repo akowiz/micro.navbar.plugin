@@ -1,9 +1,13 @@
 #!/bin/env lua
 
-T_NONE = 99
-T_CLASS = 1
-T_FUNCTION = 2
-T_CONSTANT = 4
+--- @module navbar.navbar_python
+local nbp = {}
+
+
+nbp.T_NONE = 0
+nbp.T_CLASS = 1
+nbp.T_FUNCTION = 2
+nbp.T_CONSTANT = 3
 
 
 -------------------------------------------------------------------------------
@@ -42,19 +46,30 @@ end
 -- Data Structures
 -------------------------------------------------------------------------------
 
-Node = { name = '', kind = T_NONE, line = 0, indent = 0, parent = nil, }
+-- Meta Class
 
-function Node:new(o, n, k, l, i, p)
-    o = o or {}
-    setmetatable(o, self)
+nbp.Node = { name='', kind=nbp.T_NONE, line=0, indent=0, parent=nil }
+
+function nbp.Node:new(n, k, l, i, p)
+    local o = {}
     self.__index = self
+    setmetatable(o, nbp.Node)
 
-    self.name = n or ''
-    self.kind = k or T_NONE
-    self.line = l or 0
-    self.indent = i or 0
-    self.parent = p
+    o.name = n or nbp.Node.name
+    o.kind = k or nbp.Node.kind
+    o.line = l or nbp.Node.line
+    o.indent = i or nbp.Node.indent
+    o.parent = p or nbp.Node.parent
+
     return o
+end
+
+function nbp.Node:__tostring()
+    return self:__repr()
+end
+
+function nbp.Node:__repr()
+    return 'Node(' .. table.concat({self.name, self.kind, self.line, self.indent, self.parent}, ', ') .. ')'
 end
 
 
@@ -64,7 +79,8 @@ function string:export_structure_python()
 
     for k, v in pairs({'classes', 'functions', 'constants'}) do
         aTable[v] = {}
-        table.insert(aTable[v], 'value')
+        empty = nbp.Node:new()
+        table.insert(aTable[v], empty)
     end
 
     return aTable
@@ -75,11 +91,4 @@ end
 -- Module
 -------------------------------------------------------------------------------
 
-return {
-    T_CLASS = T_CLASS,
-    T_FUNCTION = T_FUNCTION,
-    T_CONSTANT = T_CONSTANT,
-    split = split,
-    export_structure_python = export_structure_python,
-    Node = Node,
-}
+return nbp
