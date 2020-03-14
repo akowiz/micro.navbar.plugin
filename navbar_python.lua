@@ -48,9 +48,10 @@ end
 
 -- Meta Class
 
-nbp.Node = { name='', kind=nbp.T_NONE, line=0, indent=0, parent=nil }
+nbp.Node = { name='', kind=nbp.T_NONE, line=0, indent=0, closed=false,
+             parent=nil, children={} }
 
-function nbp.Node:new(n, k, l, i, p)
+function nbp.Node:new(n, k, l, i, c)
     local o = {}
     self.__index = self
     setmetatable(o, nbp.Node)
@@ -59,7 +60,9 @@ function nbp.Node:new(n, k, l, i, p)
     o.kind = k or nbp.Node.kind
     o.line = l or nbp.Node.line
     o.indent = i or nbp.Node.indent
-    o.parent = p or nbp.Node.parent
+    o.closed = c or nbp.Node.closed
+    o.children = {}
+    o.parent = nil
 
     return o
 end
@@ -71,11 +74,16 @@ end
 
 function nbp.Node:__repr()
     -- Allow us to display the nodes in a readable way.
-    return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent, self.parent}, ', ') .. ')'
+    return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent}, ', ') .. ')'
 end
 
 function nbp.Node:__tostring()
     return self:__repr()
+end
+
+function nbp.Node:append(node)
+    node.parent = self
+    table.insert(self.children, node)
 end
 
 
