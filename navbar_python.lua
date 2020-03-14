@@ -63,6 +63,7 @@ function nbp.match_python_item(line)
     indent, name = string.match(line, "^(%s*)def%s*([_%a%d]-)%s*%(")
     if name then
         kind = nbp.T_FUNCTION
+        indent = indent:len()
         goto mpi_continue
     end
 
@@ -70,6 +71,7 @@ function nbp.match_python_item(line)
     indent, name = string.match(line, "^(%s*)class%s*([_%a%d]-)%s*[(:]")
     if name then
         kind = nbp.T_CLASS
+        indent = indent:len()
         goto mpi_continue
     end
 
