@@ -93,15 +93,7 @@ end
 
 -- Export the python structure of a buffer containing python code
 function string:export_structure_python()
-    local aTable = {}
-
-    for k, v in ipairs({'classes', 'functions', 'constants'}) do
-        aTable[v] = {}
-    end
-
-    local classes = aTable['classes']
-    local functions = aTable['functions']
-    local constants = aTable['constants']
+    local root = nbp.Node:new('Root')
 
     local parents = { [0] = nil }   -- table of parents indexed by indent
 
@@ -113,7 +105,8 @@ function string:export_structure_python()
         local indent, name = string.match(line, "^(%s*)class%s*([_%a]-)%s*[(:]")
         if name then
             if (indent == '') or (indent == 0) then
-                classes[#classes+1] = nbp.Node:new(name, nbp.T_CLASS, nb, indent:len())
+                node = nbp.Node:new(name, nbp.T_CLASS, nb, indent:len())
+                root:append(node)
             else
                 -- print("Ignore class "..name)
                 -- print("indent = "..tostring(indent))
@@ -124,7 +117,8 @@ function string:export_structure_python()
         local indent, name = string.match(line, "^(%s*)def%s*([_%a]-)%s*%(")
         if name then
             if (indent == '') or (indent == 0) then
-                functions[#functions+1] = nbp.Node:new(name, nbp.T_FUNCTION, nb, indent:len())
+                node = nbp.Node:new(name, nbp.T_FUNCTION, nb, indent:len())
+                root:append(node)
             else
                 -- print("Ignore function "..name)
                 -- print("indent = "..tostring(indent))
@@ -135,31 +129,13 @@ function string:export_structure_python()
         local name = string.match(line, "^([_%a]-)%s*=[^=]")
         if name then
             -- Notes: we only considers constants with indent of 0
-            constants[#constants+1] = nbp.Node:new(name, nbp.T_CONSTANT, nb, 0)
+            node = nbp.Node:new(name, nbp.T_CONSTANT, nb, 0)
+            root:append(node)
         end
 
     end
 
-    -- Sort the tables
-
-    table.sort(classes)
-    table.sort(functions)
-    table.sort(constants)
-
---[[
-    print()
-    for _, node in ipairs(classes) do
-        print(node)
-    end
-    for _, node in ipairs(functions) do
-        print(node)
-    end
-    for _, node in ipairs(constants) do
-        print(node)
-    end
---]]
-
-    return aTable
+    return root
 end
 
 
