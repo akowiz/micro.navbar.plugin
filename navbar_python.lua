@@ -139,14 +139,14 @@ end
 -------------------------------------------------------------------------------
 
 -- Export the python structure of a buffer containing python code
-function string:export_structure_python()
+function nbp.export_structure_python(str)
     local root = nbp.Node:new('Root')
 
     local parents = { [0] = nil }   -- table of parents indexed by indent
 
     -- Extract structure from the buffer
 
-    local lines = self:split('\n')
+    local lines = str:split('\n')
     for nb, line in ipairs(lines) do
 
         local indent, name = string.match(line, "^(%s*)class%s*([_%a]-)%s*[(:]")
