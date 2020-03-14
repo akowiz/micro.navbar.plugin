@@ -41,25 +41,72 @@ function string:split(sSeparator, nMax, bRegexp)
    return aRecord
 end
 
+function nbp.kind_to_str(kind)
+    local ret = 'None'
+    if kind == nbp.T_CLASS then
+        ret = 'Class'
+    elseif kind == nbp.T_FUNCTION then
+        ret = 'Function'
+    elseif kind == nbp.T_CONSTANT then
+        ret = 'Constant'
+    end
+    return ret
+end
+
+function nbp.match_python_item(line)
+    local indent = 0
+    local name
+    local kind
+    local ret = nil
+
+    -- match a function
+    indent, name = string.match(line, "^(%s*)def%s*([_%a%d]-)%s*%(")
+    if name then
+        kind = nbp.T_FUNCTION
+        goto mpi_continue
+    end
+
+    -- match a class
+    indent, name = string.match(line, "^(%s*)class%s*([_%a%d]-)%s*[(:]")
+    if name then
+        kind = nbp.T_CLASS
+        goto mpi_continue
+    end
+
+    -- match a constant
+    name = string.match(line, "^([_%a%d]-)%s*=[^=]")
+    if name then
+        kind = nbp.T_CONSTANT
+        goto mpi_continue
+    end
+
+    ::mpi_continue::
+
+    if name then
+        ret = nbp.Node:new(name, kind, indent)
+    end
+
+    return ret
+end
 
 -------------------------------------------------------------------------------
 -- Data Structures
 -------------------------------------------------------------------------------
 
--- Meta Class
+-- Class Node
 
 nbp.Node = { name='', kind=nbp.T_NONE, line=0, indent=0, closed=false,
              parent=nil, children={} }
 
-function nbp.Node:new(n, k, l, i, c)
+function nbp.Node:new(n, k, i, l, c)
     local o = {}
     self.__index = self
     setmetatable(o, nbp.Node)
 
     o.name = n or nbp.Node.name
     o.kind = k or nbp.Node.kind
-    o.line = l or nbp.Node.line
     o.indent = i or nbp.Node.indent
+    o.line = l or nbp.Node.line
     o.closed = c or nbp.Node.closed
     o.children = {}
     o.parent = nil
