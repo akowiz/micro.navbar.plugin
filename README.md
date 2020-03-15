@@ -4,6 +4,20 @@
 
 Navigation bar (class and functions) for micro editor.
 
+There are 3 styles defined to display the tree: 'bare', 'ascii' and 'box'
+
+* 'bare' style *
+
+v Classes               > Classes
+  v TestClass1            > TestClass1
+    . __init__            . TestClass2
+    . __str__           > Functions
+  . TestClass2          > Variables
+v Functions
+  . TestFunction
+v Variables
+  . TestVariable
+
 
 Supported Languages
 -------------------
@@ -16,8 +30,6 @@ Current implementation should be easy to adapt to any language using fix indenta
 TODO
 ----
 - Write functional test and unit test for the export of the python structure from the buffer.
-- Write functional test and unit test to validate what is being displayed of the structure depending on whether items are "open" or "closed".
 - Display the python structure in the left pane.
 - Add actions (keyboard, mouse) to items in the left pane (goto, open, close).
 - Setup sane default (all open, all closed, level1 open).
-- Add different style such as "basic" (using |,+,-, ) or "ascii" (using ascii lines) to display the tree.
