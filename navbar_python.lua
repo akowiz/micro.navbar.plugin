@@ -41,6 +41,10 @@ function string:split(sSeparator, nMax, bRegexp)
    return aRecord
 end
 
+function nbp.isempty(table)
+    return next(table) == nil
+end
+
 function nbp.kind_to_str(kind)
     local ret = 'None'
     if kind == nbp.T_CLASS then
