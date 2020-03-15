@@ -150,7 +150,7 @@ end
 function nbp.tree_style(stylename)
     ret = {}
     if     stylename == 'bare' then
-        ret['last_item'] = ' '
+        ret['last_item'] = '.'
         ret['default'] = ' '
         ret['item_single'] = '.'
         ret['item_open'] = 'v'
@@ -219,7 +219,7 @@ function nbp.Node:tree_recurse(style, indent, last)
     if self.name == nbp.ROOT then
         name = nbp.ROOT
     else
-        name = string.rep(style['default']..' ', (indent - nbp.STEP)/nbp.STEP) .. lead .. ' ' .. self.name
+        name = string.rep(style['default']..' ', (indent/nbp.STEP)) .. lead .. ' ' .. self.name
     end
     names[1] = name
 
