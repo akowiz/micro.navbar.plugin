@@ -9,6 +9,9 @@ nbp.T_CLASS = 1
 nbp.T_FUNCTION = 2
 nbp.T_CONSTANT = 3
 
+nbp.ROOT = '/'
+nbp.STEP = 2
+
 
 -------------------------------------------------------------------------------
 -- Helper Functions
@@ -41,10 +44,12 @@ function string:split(sSeparator, nMax, bRegexp)
    return aRecord
 end
 
+-- Return true if table == {}, false otherwise
 function nbp.isempty(table)
     return next(table) == nil
 end
 
+-- Convert nbp.T_XXX into human readeable string
 function nbp.kind_to_str(kind)
     local ret = 'None'
     if kind == nbp.T_CLASS then
@@ -57,6 +62,8 @@ function nbp.kind_to_str(kind)
     return ret
 end
 
+-- Test a string and attempt to extract a python item (class, function,
+-- variable). If found, return the corresponding Node object, else nil.
 function nbp.match_python_item(line)
     local indent = 0
     local name
@@ -94,6 +101,7 @@ function nbp.match_python_item(line)
 
     return ret
 end
+
 
 -------------------------------------------------------------------------------
 -- Data Structures
@@ -137,6 +145,104 @@ end
 function nbp.Node:append(node)
     node.parent = self
     table.insert(self.children, node)
+end
+
+function nbp.tree_style(stylename)
+    ret = {}
+    if     stylename == 'bare' then
+        ret['last_item'] = ' '
+        ret['default'] = ' '
+        ret['item_single'] = '.'
+        ret['item_open'] = 'v'
+        ret['item_closed'] = '>'
+
+    elseif stylename == 'ascii' then
+        ret['last_item'] = 'L'
+        ret['default'] = '|'
+        ret['item_single'] = '|'
+        ret['item_open'] = 'v'
+        ret['item_closed'] = '>'
+
+    elseif stylename == 'box' then
+        ret['last_item'] = '└'
+        ret['default'] = '│'
+        ret['item_single'] = '├'
+        ret['item_open'] = '├'
+        ret['item_closed'] = '╞'
+
+    end
+    return ret
+end
+
+--[[ Function to display a node and its children in a recursive way.
+
+Notes: You do not need to call this function directly, instead you should just
+use Node:tree().
+
+Parameters
+----------
+    style : table
+        A table containing the style to use.
+    indent : int
+        The number of characters to use as leading indent.
+    last : bool
+        True if the current item is the last children of the paren node.
+
+Returns
+-------
+    string
+        The tree of the node and its children in a string.
+--]]
+function nbp.Node:tree_recurse(style, indent, last)
+    local lead = style['item_single']
+    local name
+    local names = {}
+
+    if last then
+        lead = style['last_item']
+    end
+
+    names[1] = '' -- placeholder
+    if #self.children > 0 then
+        if self.closed then
+            lead = style['item_closed']
+        else
+            lead = style['item_open']
+        end
+        table.sort(self.children)
+        for k, v in ipairs(self.children) do
+            local last = (k == #self.children)
+            names[#names+1] = v:tree_recurse(style, indent + nbp.STEP, last)
+        end
+    end
+
+    if self.name == nbp.ROOT then
+        name = nbp.ROOT
+    else
+        name = string.rep(style['default']..' ', (indent - nbp.STEP)/nbp.STEP) .. lead .. ' ' .. self.name
+    end
+    names[1] = name
+
+    return table.concat(names, "\n")
+end
+
+--[[ Function to display a node and its children.
+
+
+Parameters
+----------
+    style : string
+        The style to use (one of 'bare', 'ascii', 'box') to display the tree.
+
+Returns
+-------
+    string
+        The tree of the node and its children in a string.
+--]]
+function nbp.Node:tree(style)
+    style = style or 'bare'
+    style = nbp.tree_style(style)
+    return self:tree_recurse(style, 0, false)
 end
 
 
