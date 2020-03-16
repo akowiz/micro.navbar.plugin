@@ -258,7 +258,7 @@ local function tree_rec(style, node, tree, padding, islast, isfirst)
     end
 end
 
-function nbp.Node:tree3(stylename, spacing, hide_me)
+function nbp.Node:tree(stylename, spacing, hide_me)
     stylename = stylename or 'bare'
     spacing = spacing or 0
     hide_me = hide_me or false
