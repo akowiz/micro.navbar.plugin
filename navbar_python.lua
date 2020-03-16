@@ -230,9 +230,18 @@ function nbp.ReturnTree(style, tab, tree, padding, level)
         i = i + 1
         if key_count == i then -- Last key
             if level == 1 and i == 1 then -- Single key at first level
-                table.insert(tree, node.name)
-                if not node.closed then
-                    nbp.ReturnTree(style, node.children, tree, nil, level + 1)
+                print('<node name='..node.name..'>')
+                lead = style['1st_level_1st_key']
+                if not nbp.isempty(node.children) then
+                    if node.closed then
+                        lead = style['1st_level_1st_key_closed']
+                    else
+                        lead = style['1st_level_1st_key_open']
+                    end
+                end
+                table.insert(tree, padding .. lead .. node.name)
+                if (not nbp.isempty(node.children))  and (not node.closed) then
+                    nbp.ReturnTree(style, node.children, tree, padding .. padding, level + 1)
                 end
             else
                 lead = style['lst_key']
