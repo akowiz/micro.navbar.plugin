@@ -147,73 +147,49 @@ function nbp.Node:append(node)
     table.insert(self.children, node)
 end
 
-function nbp.tree_style(stylename, padding)
+function nbp.tree_style(stylename, spacing)
     stylename = stylename or 'bare'
-    padding = padding or 0
+    spacing = spacing or 0
 
     ret = {}
     if     stylename == 'bare' then
-        ret['1st_level_1st_key']        = '.'..string.rep(' ', padding)..' '
-        ret['1st_level_1st_key_open']   = 'v'..string.rep(' ', padding)..' '
-        ret['1st_level_1st_key_closed'] = '>'..string.rep(' ', padding)..' '
-        ret['nth_key']        = '.'..string.rep(' ', padding)..' '
-        ret['nth_key_open']   = 'v'..string.rep(' ', padding)..' '
-        ret['nth_key_closed'] = '>'..string.rep(' ', padding)..' '
-        ret['lst_key']        = '.'..string.rep(' ', padding)..' '
-        ret['lst_key_open']   = 'v'..string.rep(' ', padding)..' '
-        ret['lst_key_closed'] = '>'..string.rep(' ', padding)..' '
-        ret['empty'] = ' '..string.rep(' ', padding)..' '
-        ret['link']  = ' '..string.rep(' ', padding)..' '
-
-        ret['last_item'] = '.'
-        ret['last_item_closed'] = '>'
-        ret['last_item_open'] = 'v'
-        ret['default'] = ' '
-        ret['item_single'] = '.'
-        ret['item_open'] = 'v'
-        ret['item_closed'] = '>'
+        ret['1st_level_1st_key']        = '.'..string.rep(' ', spacing)..' '
+        ret['1st_level_1st_key_open']   = 'v'..string.rep(' ', spacing)..' '
+        ret['1st_level_1st_key_closed'] = '>'..string.rep(' ', spacing)..' '
+        ret['nth_key']        = '.'..string.rep(' ', spacing)..' '
+        ret['nth_key_open']   = 'v'..string.rep(' ', spacing)..' '
+        ret['nth_key_closed'] = '>'..string.rep(' ', spacing)..' '
+        ret['lst_key']        = '.'..string.rep(' ', spacing)..' '
+        ret['lst_key_open']   = 'v'..string.rep(' ', spacing)..' '
+        ret['lst_key_closed'] = '>'..string.rep(' ', spacing)..' '
+        ret['empty'] = ' '..string.rep(' ', spacing)..' '
+        ret['link']  = ' '..string.rep(' ', spacing)..' '
 
     elseif stylename == 'ascii' then
-        ret['1st_level_1st_key']        = '.'..string.rep(' ', padding)..' '
-        ret['1st_level_1st_key_open']   = '-'..string.rep(' ', padding)..' '
-        ret['1st_level_1st_key_closed'] = '+'..string.rep(' ', padding)..' '
-        ret['nth_key']        = '.'..string.rep(' ', padding)..' '
-        ret['nth_key_open']   = '-'..string.rep(' ', padding)..' '
-        ret['nth_key_closed'] = '+'..string.rep(' ', padding)..' '
-        ret['lst_key']        = 'L'..string.rep(' ', padding)..' '
-        ret['lst_key_open']   = '-'..string.rep(' ', padding)..' '
-        ret['lst_key_closed'] = '+'..string.rep(' ', padding)..' '
-        ret['empty'] = ' '..string.rep(' ', padding)..' '
-        ret['link']  = '|'..string.rep(' ', padding)..' '
-
-        ret['last_item'] = 'L'
-        ret['last_item_closed'] = '>'
-        ret['last_item_open'] = 'v'
-        ret['default'] = '|'
-        ret['item_single'] = '+'
-        ret['item_open'] = 'v'
-        ret['item_closed'] = '>'
+        ret['1st_level_1st_key']        = '.'..string.rep(' ', spacing)..' '
+        ret['1st_level_1st_key_open']   = '-'..string.rep(' ', spacing)..' '
+        ret['1st_level_1st_key_closed'] = '+'..string.rep(' ', spacing)..' '
+        ret['nth_key']        = '.'..string.rep(' ', spacing)..' '
+        ret['nth_key_open']   = '-'..string.rep(' ', spacing)..' '
+        ret['nth_key_closed'] = '+'..string.rep(' ', spacing)..' '
+        ret['lst_key']        = 'L'..string.rep(' ', spacing)..' '
+        ret['lst_key_open']   = '-'..string.rep(' ', spacing)..' '
+        ret['lst_key_closed'] = '+'..string.rep(' ', spacing)..' '
+        ret['empty'] = ' '..string.rep(' ', spacing)..' '
+        ret['link']  = '|'..string.rep(' ', spacing)..' '
 
     elseif stylename == 'box' then
-        ret['1st_level_1st_key']        = '├'..string.rep('─', padding)..' '
-        ret['1st_level_1st_key_open']   = '├'..string.rep('─', padding)..' '
-        ret['1st_level_1st_key_closed'] = '╞'..string.rep('═', padding)..' '
-        ret['nth_key']        = '├'..string.rep('─', padding)..' '
-        ret['nth_key_open']   = '├'..string.rep('─', padding)..' '
-        ret['nth_key_closed'] = '╞'..string.rep('═', padding)..' '
-        ret['lst_key']        = '└'..string.rep('─', padding)..' '
-        ret['lst_key_open']   = '└'..string.rep('─', padding)..' '
-        ret['lst_key_closed'] = '╘'..string.rep('═', padding)..' '
-        ret['empty'] = ' '..string.rep(' ', padding)..' '
-        ret['link']  = '│'..string.rep(' ', padding)..' '
-
-        ret['last_item'] = '└'
-        ret['last_item_closed'] = '╘'
-        ret['last_item_open'] = '└'
-        ret['default'] = '│'
-        ret['item_single'] = '├'
-        ret['item_open'] = '├'
-        ret['item_closed'] = '╞'
+        ret['1st_level_1st_key']        = '├'..string.rep('─', spacing)..' '
+        ret['1st_level_1st_key_open']   = '├'..string.rep('─', spacing)..' '
+        ret['1st_level_1st_key_closed'] = '╞'..string.rep('═', spacing)..' '
+        ret['nth_key']        = '├'..string.rep('─', spacing)..' '
+        ret['nth_key_open']   = '├'..string.rep('─', spacing)..' '
+        ret['nth_key_closed'] = '╞'..string.rep('═', spacing)..' '
+        ret['lst_key']        = '└'..string.rep('─', spacing)..' '
+        ret['lst_key_open']   = '└'..string.rep('─', spacing)..' '
+        ret['lst_key_closed'] = '╘'..string.rep('═', spacing)..' '
+        ret['empty'] = ' '..string.rep(' ', spacing)..' '
+        ret['link']  = '│'..string.rep(' ', spacing)..' '
 
     end
     return ret
@@ -289,6 +265,25 @@ function nbp.ReturnTree(style, tab, tree, padding, level)
     return table.concat(tree, "\n")
 end
 
+--[[ Function to display a node and its children.
+
+
+Parameters
+----------
+    stylename : string
+        The style to use (one of 'bare', 'ascii', 'box') to display the tree.
+        Default to 'bare'.
+    spacing : int
+        The number or extra-characters to add to the lead before displaying
+        a node name. Default to 0.
+    hide_me : bool
+        True to hide the current node and only display its's children.
+
+Returns
+-------
+    string
+        The tree of the node and its children in a string.
+--]]
 function nbp.Node:tree2(stylename, spacing, hide_me)
     stylename = stylename or 'bare'
     spacing = spacing or 0
@@ -318,90 +313,6 @@ function nbp.Node:tree2(stylename, spacing, hide_me)
     end
 
     return table.concat(tree, "\n")
-end
-
-
---[[ Function to display a node and its children in a recursive way.
-
-Notes: You do not need to call this function directly, instead you should just
-use Node:tree().
-
-Parameters
-----------
-    style : table
-        A table containing the style to use.
-    indent : int
-        The number of characters to use as leading indent.
-    last : bool
-        True if the current item is the last children of the paren node.
-
-Returns
--------
-    string
-        The tree of the node and its children in a string.
---]]
-function nbp.Node:tree_recurse(style, indent, last)
-    local lead = style['item_single']
-    local default = style['default']
-    local name
-    local names = {}
-
-    if last then
-        lead = style['last_item']
-    end
-
-    names[1] = '' -- placeholder
-    if #self.children > 0 then
-        if self.closed then
-            if last then
-                lead = style['last_item_closed']
-            else
-                lead = style['item_closed']
-            end
-        else
-            if last then
-                lead = style['last_item_open']
-            else
-                lead = style['item_open']
-            end
-        end
-        table.sort(self.children)
-        for k, v in ipairs(self.children) do
-            local last = (k == #self.children)
-            names[#names+1] = v:tree_recurse(style, indent + nbp.STEP, last)
-        end
-    end
-
-    if self.name == nbp.ROOT then
-        name = nbp.ROOT
-    else
-        if last then
-            default = ' '
-        end
-        name = string.rep(default..' ', (indent/nbp.STEP)) .. lead .. ' ' .. self.name
-    end
-    names[1] = name
-
-    return table.concat(names, "\n")
-end
-
---[[ Function to display a node and its children.
-
-
-Parameters
-----------
-    style : string
-        The style to use (one of 'bare', 'ascii', 'box') to display the tree.
-
-Returns
--------
-    string
-        The tree of the node and its children in a string.
---]]
-function nbp.Node:tree(style)
-    style = style or 'bare'
-    style = nbp.tree_style(style)
-    return self:tree_recurse(style, 0, false)
 end
 
 
