@@ -283,7 +283,7 @@ Returns
     string
         The tree of the node and its children in a string.
 --]]
-function nbp.Node:tree2(stylename, spacing, hide_me)
+function nbp.Node:tree(stylename, spacing, hide_me)
     stylename = stylename or 'bare'
     spacing = spacing or 0
     hide_me = hide_me or false
