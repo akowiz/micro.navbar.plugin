@@ -55,6 +55,7 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 TODO
 ----
+- Split the function about displaying a tree into a different module. Write it in a generic way so that it can handle more cases (the notion open/closed if the field is present, children in a different field, etc.)
 - Write functional test and unit test for the export of the python structure from the buffer.
 - Display the python structure in the left pane.
 - Add actions (keyboard, mouse) to items in the left pane (goto, open, close).
