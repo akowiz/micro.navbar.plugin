@@ -147,24 +147,69 @@ function nbp.Node:append(node)
     table.insert(self.children, node)
 end
 
-function nbp.tree_style(stylename)
+function nbp.tree_style(stylename, padding)
+    stylename = stylename or 'bare'
+    padding = padding or 0
+
     ret = {}
     if     stylename == 'bare' then
+        ret['1st_level_1st_key']        = '.'..string.rep(' ', padding)..' '
+        ret['1st_level_1st_key_open']   = 'v'..string.rep(' ', padding)..' '
+        ret['1st_level_1st_key_closed'] = '>'..string.rep(' ', padding)..' '
+        ret['nth_key']        = '.'..string.rep(' ', padding)..' '
+        ret['nth_key_open']   = 'v'..string.rep(' ', padding)..' '
+        ret['nth_key_closed'] = '>'..string.rep(' ', padding)..' '
+        ret['lst_key']        = '.'..string.rep(' ', padding)..' '
+        ret['lst_key_open']   = 'v'..string.rep(' ', padding)..' '
+        ret['lst_key_closed'] = '>'..string.rep(' ', padding)..' '
+        ret['empty'] = ' '..string.rep(' ', padding)..' '
+        ret['link']  = ' '..string.rep(' ', padding)..' '
+
         ret['last_item'] = '.'
+        ret['last_item_closed'] = '>'
+        ret['last_item_open'] = 'v'
         ret['default'] = ' '
         ret['item_single'] = '.'
         ret['item_open'] = 'v'
         ret['item_closed'] = '>'
 
     elseif stylename == 'ascii' then
+        ret['1st_level_1st_key']        = '.'..string.rep(' ', padding)..' '
+        ret['1st_level_1st_key_open']   = '-'..string.rep(' ', padding)..' '
+        ret['1st_level_1st_key_closed'] = '+'..string.rep(' ', padding)..' '
+        ret['nth_key']        = '.'..string.rep(' ', padding)..' '
+        ret['nth_key_open']   = '-'..string.rep(' ', padding)..' '
+        ret['nth_key_closed'] = '+'..string.rep(' ', padding)..' '
+        ret['lst_key']        = 'L'..string.rep(' ', padding)..' '
+        ret['lst_key_open']   = '-'..string.rep(' ', padding)..' '
+        ret['lst_key_closed'] = '+'..string.rep(' ', padding)..' '
+        ret['empty'] = ' '..string.rep(' ', padding)..' '
+        ret['link']  = '|'..string.rep(' ', padding)..' '
+
         ret['last_item'] = 'L'
+        ret['last_item_closed'] = '>'
+        ret['last_item_open'] = 'v'
         ret['default'] = '|'
-        ret['item_single'] = '|'
+        ret['item_single'] = '+'
         ret['item_open'] = 'v'
         ret['item_closed'] = '>'
 
     elseif stylename == 'box' then
+        ret['1st_level_1st_key']        = '├'..string.rep('─', padding)..' '
+        ret['1st_level_1st_key_open']   = '├'..string.rep('─', padding)..' '
+        ret['1st_level_1st_key_closed'] = '╞'..string.rep('═', padding)..' '
+        ret['nth_key']        = '├'..string.rep('─', padding)..' '
+        ret['nth_key_open']   = '├'..string.rep('─', padding)..' '
+        ret['nth_key_closed'] = '╞'..string.rep('═', padding)..' '
+        ret['lst_key']        = '└'..string.rep('─', padding)..' '
+        ret['lst_key_open']   = '└'..string.rep('─', padding)..' '
+        ret['lst_key_closed'] = '╘'..string.rep('═', padding)..' '
+        ret['empty'] = ' '..string.rep(' ', padding)..' '
+        ret['link']  = '│'..string.rep(' ', padding)..' '
+
         ret['last_item'] = '└'
+        ret['last_item_closed'] = '╘'
+        ret['last_item_open'] = '└'
         ret['default'] = '│'
         ret['item_single'] = '├'
         ret['item_open'] = '├'
@@ -173,6 +218,99 @@ function nbp.tree_style(stylename)
     end
     return ret
 end
+
+function nbp.ReturnTree(style, tab, tree, padding, level)
+    padding = padding or ""
+    level = level or 1
+    local tree = tree or {}
+    local i = 0
+    local key_count = #tab
+    local lead
+    for k, node in ipairs(tab) do
+        i = i + 1
+        if key_count == i then -- Last key
+            if level == 1 and i == 1 then -- Single key at first level
+                table.insert(tree, node.name)
+                if not node.closed then
+                    nbp.ReturnTree(style, node.children, tree, nil, level + 1)
+                end
+            else
+                lead = style['lst_key']
+                if not nbp.isempty(node.children) then
+                    if node.closed then
+                        lead = style['lst_key_closed']
+                    else
+                        lead = style['lst_key_open']
+                    end
+                end
+                table.insert(tree, padding .. lead .. node.name)
+                if not node.closed then
+                    lead = style['empty']
+                    nbp.ReturnTree(style, node.children, tree, padding .. lead, level + 1)
+                end
+            end
+        else -- Not last key
+            if level == 1 and i == 1 then -- First level, first key
+                lead = style['1st_level_1st_key']
+                if not nbp.isempty(node.children) then
+                    if node.closed then
+                        lead = style['1st_level_1st_key_closed']
+                    else
+                        lead = style['1st_level_1st_key_open']
+                    end
+                end
+                table.insert(tree, padding .. lead .. node.name)
+            else
+                lead = style['nth_key']
+                if not nbp.isempty(node.children) then
+                    if node.closed then
+                        lead = style['nth_key_closed']
+                    else
+                        lead = style['nth_key_open']
+                    end
+                end
+                table.insert(tree, padding .. lead .. node.name)
+            end
+            lead = style['link']
+            if not node.closed then
+                nbp.ReturnTree(style, node.children, tree, padding .. lead, level + 1)
+            end
+        end
+    end
+    return table.concat(tree, "\n")
+end
+
+function nbp.Node:tree2(stylename, spacing, hide_me)
+    stylename = stylename or 'bare'
+    spacing = spacing or 0
+    hide_me = hide_me or false
+
+    local style = nbp.tree_style(stylename, spacing)
+    local tree = {}
+    local lead = nil
+    local padding = nil
+
+    if not hide_me then
+        padding = style['empty']
+        if nbp.isempty(self.children) then
+            lead = style['lst_key']
+        else
+            if self.closed then
+                lead = style['lst_key_closed']
+            else
+                lead = style['lst_key_open']
+            end
+        end
+        table.insert(tree, lead .. self.name)
+    end
+
+    if (not nbp.isempty(self.children)) and (not self.closed) then
+        nbp.ReturnTree(style, self.children, tree, padding)
+    end
+
+    return table.concat(tree, "\n")
+end
+
 
 --[[ Function to display a node and its children in a recursive way.
 
@@ -195,6 +333,7 @@ Returns
 --]]
 function nbp.Node:tree_recurse(style, indent, last)
     local lead = style['item_single']
+    local default = style['default']
     local name
     local names = {}
 
@@ -205,9 +344,17 @@ function nbp.Node:tree_recurse(style, indent, last)
     names[1] = '' -- placeholder
     if #self.children > 0 then
         if self.closed then
-            lead = style['item_closed']
+            if last then
+                lead = style['last_item_closed']
+            else
+                lead = style['item_closed']
+            end
         else
-            lead = style['item_open']
+            if last then
+                lead = style['last_item_open']
+            else
+                lead = style['item_open']
+            end
         end
         table.sort(self.children)
         for k, v in ipairs(self.children) do
@@ -219,7 +366,10 @@ function nbp.Node:tree_recurse(style, indent, last)
     if self.name == nbp.ROOT then
         name = nbp.ROOT
     else
-        name = string.rep(style['default']..' ', (indent/nbp.STEP)) .. lead .. ' ' .. self.name
+        if last then
+            default = ' '
+        end
+        name = string.rep(default..' ', (indent/nbp.STEP)) .. lead .. ' ' .. self.name
     end
     names[1] = name
 
