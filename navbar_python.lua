@@ -204,125 +204,6 @@ function nbp.tree_style(stylename, spacing)
     return ret
 end
 
-function nbp.ReturnTree(style, tab, tree, padding, level)
-    padding = padding or ""
-    level = level or 1
-    local tree = tree or {}
-    local i = 0
-    local key_count = #tab
-    local lead
-    for k, node in ipairs(tab) do
-        i = i + 1
-        if key_count == i then -- Last key
-            if level == 1 and i == 1 then -- Single key at first level
-                lead = style['1st_level_1st_key']
-                if not nbp.isempty(node.children) then
-                    if node.closed then
-                        lead = style['1st_level_1st_key_closed']
-                    else
-                        lead = style['1st_level_1st_key_open']
-                    end
-                end
-                table.insert(tree, padding .. lead .. node.name)
-                if (not nbp.isempty(node.children))  and (not node.closed) then
-                    nbp.ReturnTree(style, node.children, tree, padding .. padding, level + 1)
-                end
-            else
-                lead = style['lst_key']
-                if not nbp.isempty(node.children) then
-                    if node.closed then
-                        lead = style['lst_key_closed']
-                    else
-                        lead = style['lst_key_open']
-                    end
-                end
-                table.insert(tree, padding .. lead .. node.name)
-                if not node.closed then
-                    lead = style['empty']
-                    nbp.ReturnTree(style, node.children, tree, padding .. lead, level + 1)
-                end
-            end
-        else -- Not last key
-            if level == 1 and i == 1 then -- First level, first key
-                lead = style['1st_level_1st_key']
-                if not nbp.isempty(node.children) then
-                    if node.closed then
-                        lead = style['1st_level_1st_key_closed']
-                    else
-                        lead = style['1st_level_1st_key_open']
-                    end
-                end
-                table.insert(tree, padding .. lead .. node.name)
-            else
-                lead = style['nth_key']
-                if not nbp.isempty(node.children) then
-                    if node.closed then
-                        lead = style['nth_key_closed']
-                    else
-                        lead = style['nth_key_open']
-                    end
-                end
-                table.insert(tree, padding .. lead .. node.name)
-            end
-            lead = style['link']
-            if not node.closed then
-                nbp.ReturnTree(style, node.children, tree, padding .. lead, level + 1)
-            end
-        end
-    end
-    return table.concat(tree, "\n")
-end
-
---[[ Function to display a node and its children.
-
-
-Parameters
-----------
-    stylename : string
-        The style to use (one of 'bare', 'ascii', 'box') to display the tree.
-        Default to 'bare'.
-    spacing : int
-        The number or extra-characters to add to the lead before displaying
-        a node name. Default to 0.
-    hide_me : bool
-        True to hide the current node and only display its's children.
-
-Returns
--------
-    string
-        The tree of the node and its children in a string.
---]]
-function nbp.Node:tree(stylename, spacing, hide_me)
-    stylename = stylename or 'bare'
-    spacing = spacing or 0
-    hide_me = hide_me or false
-
-    local style = nbp.tree_style(stylename, spacing)
-    local tree = {}
-    local lead = nil
-    local padding = nil
-
-    if not hide_me then
-        padding = style['empty']
-        if nbp.isempty(self.children) then
-            lead = style['lst_key']
-        else
-            if self.closed then
-                lead = style['lst_key_closed']
-            else
-                lead = style['lst_key_open']
-            end
-        end
-        table.insert(tree, lead .. self.name)
-    end
-
-    if (not nbp.isempty(self.children)) and (not self.closed) then
-        nbp.ReturnTree(style, self.children, tree, padding)
-    end
-
-    return table.concat(tree, "\n")
-end
-
 local function get_lead(node, default, closed, open)
     local lead = default
     if not nbp.isempty(node.children) then
@@ -335,7 +216,7 @@ local function get_lead(node, default, closed, open)
     return lead
 end
 
-function nbp.tree_rec(style, node, tree, padding, islast, isfirst)
+local function tree_rec(style, node, tree, padding, islast, isfirst)
     style = style or nbp.tree_style('bare', 0)
     tree = tree or {}
     padding = padding or ''
@@ -372,7 +253,7 @@ function nbp.tree_rec(style, node, tree, padding, islast, isfirst)
             else
                 child_padding = padding .. style['link']
             end
-            nbp.tree_rec(style, child, tree, child_padding, child_last, child_first)
+            tree_rec(style, child, tree, child_padding, child_last, child_first)
         end
     end
 end
@@ -401,7 +282,7 @@ function nbp.Node:tree3(stylename, spacing, hide_me)
         for k, child in ipairs(self.children) do
             local isfirst = (k == 1)
             local islast  = (k == #self.children)
-            nbp.tree_rec(style, child, tree, padding, islast, isfirst)
+            tree_rec(style, child, tree, padding, islast, isfirst)
         end
     end
 
