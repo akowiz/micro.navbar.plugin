@@ -22,26 +22,26 @@ v Variables
 * 'ascii' style *
 
 - Classes               - Classes
-| - TestClass1          | + TestClass1
-| | . __init__          | L TestClass2
-| | L __str__           + Functions
-| L TestClass2          + Variables
+  - TestClass1            + TestClass1
+  | . __init__            L TestClass2
+  | L __str__           + Functions
+  L TestClass2          + Variables
 - Functions
-| L TestFunction
+  L TestFunction
 - Variables
   L TestVariable
 
 
 * 'box' style *
 
-├ Classes               ├ Classes
-│ ├ TestClass1          │ ╞ TestClass1
-│ │ ├ __init__          │ └ TestClass2
-│ │ └ __str__           ╞ Functions
-│ └ TestClass2          ╘ Variables
-├ Functions
-│ └ TestFunction
-└ Variables
+▾ Classes               ▾ Classes
+  ├ TestClass1            ╞ TestClass1
+  │ ├ __init__            └ TestClass2
+  │ └ __str__           ▸ Functions
+  └ TestClass2          ▸ Variables
+▾ Functions
+  └ TestFunction
+▾ Variables
   └ TestVariable
 
 

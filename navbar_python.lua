@@ -153,6 +153,9 @@ function nbp.tree_style(stylename, spacing)
 
     ret = {}
     if     stylename == 'bare' then
+        ret['root']         = '.'..string.rep('─', spacing)..' '
+        ret['root_open']    = 'v'..string.rep('─', spacing)..' '
+        ret['root_closed']  = '>'..string.rep('─', spacing)..' '
         ret['1st_level_1st_key']        = '.'..string.rep(' ', spacing)..' '
         ret['1st_level_1st_key_open']   = 'v'..string.rep(' ', spacing)..' '
         ret['1st_level_1st_key_closed'] = '>'..string.rep(' ', spacing)..' '
@@ -166,6 +169,9 @@ function nbp.tree_style(stylename, spacing)
         ret['link']  = ' '..string.rep(' ', spacing)..' '
 
     elseif stylename == 'ascii' then
+        ret['root']         = '.'..string.rep('─', spacing)..' '
+        ret['root_open']    = '-'..string.rep('─', spacing)..' '
+        ret['root_closed']  = '+'..string.rep('─', spacing)..' '
         ret['1st_level_1st_key']        = '.'..string.rep(' ', spacing)..' '
         ret['1st_level_1st_key_open']   = '-'..string.rep(' ', spacing)..' '
         ret['1st_level_1st_key_closed'] = '+'..string.rep(' ', spacing)..' '
@@ -179,6 +185,9 @@ function nbp.tree_style(stylename, spacing)
         ret['link']  = '|'..string.rep(' ', spacing)..' '
 
     elseif stylename == 'box' then
+        ret['root']         = ' '..string.rep('─', spacing)..' '
+        ret['root_open']    = '▾'..string.rep('─', spacing)..' '
+        ret['root_closed']  = '▸'..string.rep('─', spacing)..' '
         ret['1st_level_1st_key']        = '├'..string.rep('─', spacing)..' '
         ret['1st_level_1st_key_open']   = '├'..string.rep('─', spacing)..' '
         ret['1st_level_1st_key_closed'] = '╞'..string.rep('═', spacing)..' '
@@ -314,6 +323,90 @@ function nbp.Node:tree(stylename, spacing, hide_me)
     return table.concat(tree, "\n")
 end
 
+local function get_lead(node, default, closed, open)
+    local lead = default
+    if not nbp.isempty(node.children) then
+        if node.closed then
+            lead = closed
+        else
+            lead = open
+        end
+    end
+    return lead
+end
+
+function nbp.tree_rec(style, node, tree, padding, islast, isfirst)
+    style = style or nbp.tree_style('bare', 0)
+    tree = tree or {}
+    padding = padding or ''
+
+    local lead
+
+    -- print(node.name, padding, islast, isfirst)
+
+    if     islast then
+        lead = get_lead(node,
+                        style['lst_key'],
+                        style['lst_key_closed'],
+                        style['lst_key_open'])
+    elseif isfirst then
+        lead = get_lead(node,
+                        style['1st_level_1st_key'],
+                        style['1st_level_1st_key_closed'],
+                        style['1st_level_1st_key_open'])
+    else
+        lead = get_lead(node,
+                        style['nth_key'],
+                        style['nth_key_closed'],
+                        style['nth_key_open'])
+    end
+    table.insert(tree, padding .. lead .. node.name)
+
+    if not node.closed then
+        for k, child in ipairs(node.children) do
+            local child_first = (k == 1)
+            local child_last = (k == #node.children)
+            local child_padding
+            if islast then
+                child_padding = padding .. style['empty']
+            else
+                child_padding = padding .. style['link']
+            end
+            nbp.tree_rec(style, child, tree, child_padding, child_last, child_first)
+        end
+    end
+end
+
+function nbp.Node:tree3(stylename, spacing, hide_me)
+    stylename = stylename or 'bare'
+    spacing = spacing or 0
+    hide_me = hide_me or false
+
+    local style = nbp.tree_style(stylename, spacing)
+    local tree = {}
+    local lead = nil
+    local padding = nil
+
+    if not hide_me then
+        padding = style['empty']
+
+        lead = get_lead(self,
+                        style['root'],
+                        style['root_closed'],
+                        style['root_open'])
+        table.insert(tree, lead .. self.name)
+    end
+
+    if not self.closed then
+        for k, child in ipairs(self.children) do
+            local isfirst = (k == 1)
+            local islast  = (k == #self.children)
+            nbp.tree_rec(style, child, tree, padding, islast, isfirst)
+        end
+    end
+
+    return table.concat(tree, '\n')
+end
 
 -------------------------------------------------------------------------------
 -- Main Functions
