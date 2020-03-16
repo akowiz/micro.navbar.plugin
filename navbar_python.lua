@@ -206,7 +206,6 @@ function nbp.ReturnTree(style, tab, tree, padding, level)
         i = i + 1
         if key_count == i then -- Last key
             if level == 1 and i == 1 then -- Single key at first level
-                print('<node name='..node.name..'>')
                 lead = style['1st_level_1st_key']
                 if not nbp.isempty(node.children) then
                     if node.closed then
