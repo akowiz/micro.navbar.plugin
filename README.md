@@ -19,6 +19,32 @@ v Variables
   . TestVariable
 
 
+* 'ascii' style *
+
+- Classes               - Classes
+| - TestClass1          | + TestClass1
+| | . __init__          | L TestClass2
+| | L __str__           + Functions
+| L TestClass2          + Variables
+- Functions
+| L TestFunction
+- Variables
+  L TestVariable
+
+
+* 'box' style *
+
+├ Classes               ├ Classes
+│ ├ TestClass1          │ ╞ TestClass1
+│ │ ├ __init__          │ └ TestClass2
+│ │ └ __str__           ╞ Functions
+│ └ TestClass2          ╘ Variables
+├ Functions
+│ └ TestFunction
+└ Variables
+  └ TestVariable
+
+
 Supported Languages
 -------------------
 - Python
