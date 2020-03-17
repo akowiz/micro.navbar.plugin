@@ -55,10 +55,8 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 TODO
 ----
-- Rename T_CONSTANT into T_VARIABLE
 - Split the function about displaying a tree into a different module. Write it in a generic way so that it can handle more cases (the notion open/closed if the field is present, children in a different field, etc.)
 - Provide an interface to add support for more languages (make sure navbar_python only contains python-specific methods)
-- Write functional test and unit test for the export of the python structure from the buffer.
 - Display the python structure in the left pane.
 - Add actions (keyboard, mouse) to items in the left pane (goto, open, close).
 - Setup sane default (all open, all closed, level1 open).

@@ -45,8 +45,7 @@ local function open_tree()
     tree_view.Buf:SetOptionNative("statusformatl", DISPLAY_NAME)
     tree_view.Buf:SetOptionNative("scrollbar", false)
 
-	-- Fill the scanlist, and then print its contents to tree_view
-	-- update_current_dir(os.Getwd())
+    -- Display the content
 end
 
 -- close_tree will close the tree plugin view and release memory.
