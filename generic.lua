@@ -42,7 +42,7 @@ end
 --- Return true if table == {}, false otherwise.
 -- @tparam table table A table.
 -- @return true if the table is {}, false otherwise.
-function gen.isempty(table)
+function gen.is_empty(table)
     return next(table) == nil
 end
 

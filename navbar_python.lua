@@ -2,7 +2,7 @@
 
 local gen = require('generic')
 
---- @module navbar.navbar_python
+--- @module navbar.lang_python
 local nbp = {}
 
 
@@ -181,7 +181,7 @@ end
 
 local function get_lead(node, default, closed, open)
     local lead = default
-    if not gen.isempty(node.children) then
+    if not gen.is_empty(node.children) then
         if node.closed then
             lead = closed
         else
@@ -265,7 +265,7 @@ function nbp.Node:tree(stylename, spacing, hide_me)
 end
 
 function nbp.Node:sort_children_rec()
-    if not gen.isempty(self.children) then
+    if not gen.is_empty(self.children) then
         table.sort(self.children)
         for k, child in ipairs(self.children) do
             child:sort_children_rec()
@@ -348,6 +348,7 @@ function nbp.tree_to_navbar(tree)
 
     return root
 end
+
 
 -------------------------------------------------------------------------------
 -- Module
