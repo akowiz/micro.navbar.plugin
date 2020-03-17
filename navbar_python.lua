@@ -12,6 +12,7 @@ nbp.T_CONSTANT = 3
 nbp.ROOT = '/'
 nbp.STEP = 2
 
+local DEBUG = false
 
 -------------------------------------------------------------------------------
 -- Helper Functions
@@ -143,6 +144,10 @@ function nbp.Node:__tostring()
 end
 
 function nbp.Node:append(node)
+    if DEBUG then
+        local kind = nbp.kind_to_str(node.kind)
+        print(kind .. ' ' .. tostring(node) .. ' added to ' .. tostring(self))
+    end
     node.parent = self
     table.insert(self.children, node)
 end
@@ -289,57 +294,90 @@ function nbp.Node:tree(stylename, spacing, hide_me)
     return table.concat(tree, '\n')
 end
 
+function nbp.Node:sort_children_rec()
+    if not nbp.isempty(self.children) then
+        table.sort(self.children)
+        for k, child in ipairs(self.children) do
+            child:sort_children_rec()
+        end
+    end
+end
+
 -------------------------------------------------------------------------------
 -- Main Functions
 -------------------------------------------------------------------------------
 
 -- Export the python structure of a buffer containing python code
 function nbp.export_structure_python(str)
-    local root = nbp.Node:new('Root')
+    local root = nbp.Node:new(nbp.ROOT)
 
-    local parents = { [0] = nil }   -- table of parents indexed by indent
+    local parents = {}   -- table of parents indexed by indent
+    local parent = nil
+    local node
+    local current_indent = 0
 
     -- Extract structure from the buffer
 
     local lines = str:split('\n')
     for nb, line in ipairs(lines) do
 
-        local indent, name = string.match(line, "^(%s*)class%s*([_%a]-)%s*[(:]")
-        if name then
-            if (indent == '') or (indent == 0) then
-                node = nbp.Node:new(name, nbp.T_CLASS, nb, indent:len())
-                root:append(node)
-            else
-                -- print("Ignore class "..name)
-                -- print("indent = "..tostring(indent))
-                -- We ignore the classes defined inside other items for the moment.
+        node = nbp.match_python_item(line)
+
+        if node then
+            if node.indent > current_indent then
+                parent = parents[current_indent]
+                current_indent = node.indent
+
+            elseif node.indent < current_indent then
+                if node.indent == 0 then
+                    parent = root
+                else
+                    parent = parents[node.indent].parent
+                end
+                current_indent = node.indent
+
+            else -- node.indent == current_indent then
+                if node.indent == 0 then
+                    parent = root
+                else
+                    -- do nothing special
+                end
             end
+            parent:append(node)
+            parents[node.indent] = node
         end
+    end
 
-        local indent, name = string.match(line, "^(%s*)def%s*([_%a]-)%s*%(")
-        if name then
-            if (indent == '') or (indent == 0) then
-                node = nbp.Node:new(name, nbp.T_FUNCTION, nb, indent:len())
-                root:append(node)
-            else
-                -- print("Ignore function "..name)
-                -- print("indent = "..tostring(indent))
-                -- We ignore the functions defined inside other items for the moment.
-            end
-        end
-
-        local name = string.match(line, "^([_%a]-)%s*=[^=]")
-        if name then
-            -- Notes: we only considers constants with indent of 0
-            node = nbp.Node:new(name, nbp.T_CONSTANT, nb, 0)
-            root:append(node)
-        end
-
+    if root then
+        root:sort_children_rec()
     end
 
     return root
 end
 
+function nbp.tree_to_navbar(tree)
+    local root      = nbp.Node:new(nbp.ROOT)
+    local classes   = nbp.Node:new('Classes')
+    local functions = nbp.Node:new('Functions')
+    local constants = nbp.Node:new('Variables')
+
+    for k, v in ipairs(tree.children) do
+        if v.kind == nbp.T_CLASS then
+            classes:append(v)
+        elseif v.kind == nbp.T_FUNCTION then
+            functions:append(v)
+        elseif v.kind == nbp.T_CONSTANT then
+            constants:append(v)
+        end
+    end
+
+    root:append(classes)
+    root:append(functions)
+    root:append(constants)
+    table.sort(root.children)
+
+    return root
+end
 
 -------------------------------------------------------------------------------
 -- Module
