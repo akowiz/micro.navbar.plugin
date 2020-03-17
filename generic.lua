@@ -8,8 +8,12 @@ local gen = {}
 -- Helper Functions
 -------------------------------------------------------------------------------
 
--- Split function with a python semantic
+--- split function with a python semantic.
 --   see http://lua-users.org/wiki/SplitJoin
+-- @tparam string sSeparator The character to use for the slit.
+-- @tparam int nMax The maximun number of split.
+-- @tparam string bRegexp The regex to use for the split instead of sSeparator.
+-- @return A table of string.
 function string:split(sSeparator, nMax, bRegexp)
    assert(sSeparator ~= '')
    assert(nMax == nil or nMax >= 1)
@@ -35,7 +39,9 @@ function string:split(sSeparator, nMax, bRegexp)
    return aRecord
 end
 
--- Return true if table == {}, false otherwise
+--- Return true if table == {}, false otherwise.
+-- @tparam table table A table.
+-- @return true if the table is {}, false otherwise.
 function gen.isempty(table)
     return next(table) == nil
 end
