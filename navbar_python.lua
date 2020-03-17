@@ -1,5 +1,7 @@
 #!/bin/env lua
 
+local gen = require('generic')
+
 --- @module navbar.navbar_python
 local nbp = {}
 
@@ -17,38 +19,6 @@ local DEBUG = false
 -------------------------------------------------------------------------------
 -- Helper Functions
 -------------------------------------------------------------------------------
-
--- Split function with a python semantic
---   see http://lua-users.org/wiki/SplitJoin
-function string:split(sSeparator, nMax, bRegexp)
-   assert(sSeparator ~= '')
-   assert(nMax == nil or nMax >= 1)
-
-   local aRecord = {}
-
-   if self:len() > 0 then
-      local bPlain = not bRegexp
-      nMax = nMax or -1
-
-      local nField, nStart = 1, 1
-      local nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-      while nFirst and nMax ~= 0 do
-         aRecord[nField] = self:sub(nStart, nFirst-1)
-         nField = nField+1
-         nStart = nLast+1
-         nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-         nMax = nMax-1
-      end
-      aRecord[nField] = self:sub(nStart)
-   end
-
-   return aRecord
-end
-
--- Return true if table == {}, false otherwise
-function nbp.isempty(table)
-    return next(table) == nil
-end
 
 -- Convert nbp.T_XXX into human readeable string
 function nbp.kind_to_str(kind)
@@ -211,7 +181,7 @@ end
 
 local function get_lead(node, default, closed, open)
     local lead = default
-    if not nbp.isempty(node.children) then
+    if not gen.isempty(node.children) then
         if node.closed then
             lead = closed
         else
@@ -295,7 +265,7 @@ function nbp.Node:tree(stylename, spacing, hide_me)
 end
 
 function nbp.Node:sort_children_rec()
-    if not nbp.isempty(self.children) then
+    if not gen.isempty(self.children) then
         table.sort(self.children)
         for k, child in ipairs(self.children) do
             child:sort_children_rec()
