@@ -19,7 +19,9 @@ local DEBUG = false
 -- Helper Functions
 -------------------------------------------------------------------------------
 
--- Convert lgp.T_XXX into human readeable string
+--- Convert lgp.T_XXX into human readeable string.
+-- @tparam int kind One of T_NONE, T_CLASS, T_FUNCTION or T_CONSTANT.
+-- @treturn string The human readable type.
 function lgp.kind_to_str(kind)
     local ret = 'None'
     if kind == lgp.T_CLASS then
@@ -32,8 +34,9 @@ function lgp.kind_to_str(kind)
     return ret
 end
 
--- Test a string and attempt to extract a python item (class, function,
--- variable). If found, return the corresponding Node object, else nil.
+--- Test a string and attempt to extract a python item (class, function, etc.)
+-- @tparam string line A line of text to analyse.
+-- @treturn Node An object recording the information about the item, or nil if we identify nothing.
 function lgp.match_python_item(line)
     local indent = 0
     local name
@@ -77,33 +80,44 @@ end
 -- Data Structures
 -------------------------------------------------------------------------------
 
--- Class Node
+--- Node inherit from tree.NodeSimple.
+-- @type Node
+lgp.Node = gen.class(tree.NodeSimple)
 
-lgp.Node = gen.class(tree.NodeBase)
-
+--- Initialize Node
+-- @tparam string name The name of the python object.
+-- @tparam int kind The kind of object (T_NONE, T_CLASS, etc.)
+-- @tparam int indent The level of indentation of the python code.
+-- @tparam int line The line from the buffer where we can see this item.
+-- @tparam bool closed Whether this node should be closed or not (i.e. whether children will be visible or not).
 function lgp.Node:__init(name, kind, indent, line, closed)
-    tree.NodeBase.__init(self)
-    self.name = name or ''
+    tree.NodeSimple.__init(self, name, closed)
     self.kind = kind or lgp.T_NONE
     self.line = line or 0
     self.indent = indent or 0
-    self.closed = closed or false
 end
 
+--- Indicates how to order nodes.
+-- @tparam Node node The node to be compared to the current node.
+-- @treturn bool true if the current node is 'before' the node.
 function lgp.Node:__lt(node)
     -- Allow us to sort the nodes by kind, and then by name
     return (self.kind < node.kind) or ((self.kind == node.kind) and (self.name < node.name))
 end
 
+--- Return a representation of the current node.
+-- Note: the order doesn't match the Node() constructor, but it is easier to read.
+-- @treturn string Node(kind, name, line, indend).
 function lgp.Node:__repr()
     -- Allow us to display the nodes in a readable way.
     return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent}, ', ') .. ')'
 end
 
-function lgp.Node:get_label()
-    return tostring(self.name)
-end
-
+--- Add a children to the current node.
+-- Both the current node and the child will be modified: Child will be added to
+-- current node's children and current node will be set as the parent of the
+-- child.
+-- @tparam Node child The node to be added as a children of the current node.
 function lgp.Node:append(node)
     if DEBUG then
         local kind = lgp.kind_to_str(node.kind)
