@@ -10,33 +10,33 @@ local gen = {}
 
 --- split function with a python semantic.
 --   see http://lua-users.org/wiki/SplitJoin
--- @tparam string sSeparator The character to use for the slit.
--- @tparam int nMax The maximun number of split.
--- @tparam string bRegexp The regex to use for the split instead of sSeparator.
+-- @tparam string sep The character to use for the slit.
+-- @tparam int max The maximun number of split.
+-- @tparam string regex The regex to use for the split instead of sSeparator.
 -- @return A table of string.
-function string:split(sSeparator, nMax, bRegexp)
-   assert(sSeparator ~= '')
-   assert(nMax == nil or nMax >= 1)
+function string:split(sep, max, regex)
+   assert(sep ~= '')
+   assert(max == nil or max >= 1)
 
-   local aRecord = {}
+   local record = {}
 
    if self:len() > 0 then
-      local bPlain = not bRegexp
-      nMax = nMax or -1
+      local plain = not regex
+      max = max or -1
 
-      local nField, nStart = 1, 1
-      local nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-      while nFirst and nMax ~= 0 do
-         aRecord[nField] = self:sub(nStart, nFirst-1)
-         nField = nField+1
-         nStart = nLast+1
-         nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-         nMax = nMax-1
+      local field, start = 1, 1
+      local first, last = self:find(sep, start, plain)
+      while first and max ~= 0 do
+         record[field] = self:sub(start, first-1)
+         field = field + 1
+         start = last + 1
+         first, last = self:find(sep, start, plain)
+         max = max-1
       end
-      aRecord[nField] = self:sub(nStart)
+      record[field] = self:sub(start)
    end
 
-   return aRecord
+   return record
 end
 
 --- Return true if table == {}, false otherwise.
