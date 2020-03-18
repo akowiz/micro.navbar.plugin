@@ -58,12 +58,13 @@ end
 -- @return Class object.
 function gen.class(...)
     -- "cls" is the new class
-    print('\n')
     local cls, bases = {}, {...}
 
     -- copy base class contents into the new class
     for i, base in ipairs(bases) do
+        -- print(i, base)
         for k, v in pairs(base) do
+            -- print(k, v)
             cls[k] = v
         end
     end
