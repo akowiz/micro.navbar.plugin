@@ -1,6 +1,6 @@
 # Micro Navbar Plugin
 
-*Written in Lua*
+*Written in Lua* (Notes: micro seems to be using lua-5.1 and not the latest lua version lua-5.3)
 
 Navigation bar (class and functions) for micro editor.
 
@@ -55,8 +55,9 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 TODO
 ----
+- Add proper documentation to navbar.
+- Improved the function displaying the tree so that we either have 3 trees or 1 tree with special treatment for some nodes (the root triangle is currently not visible).
 - Add tests about having part of a tree open/closed.
 - Provide an interface to add support for more languages (make sure navbar_python only contains python-specific methods)
-- Display the python structure in the left pane.
 - Add actions (keyboard, mouse) to items in the left pane (goto, open, close).
 - Setup sane default (all open, all closed, level1 open).
