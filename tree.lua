@@ -116,11 +116,12 @@ end
 -- child.
 -- @tparam Node child The node to be added as a children of the current node.
 function tree.NodeBase:append(child)
+    local children = self:get_children()
     if DEBUG then
         print(tostring(child) .. ' added to ' .. tostring(self))
     end
     child:set_parent(self)
-    table.insert(self.__children, child)
+    table.insert(children, child)
 end
 
 --- Return true if the node is closed.
@@ -165,7 +166,8 @@ end
 -- @treturn string The lead characters to be used.
 function tree.NodeBase:select_lead(default, closed, open)
     local lead = default
-    if not gen.is_empty(self.__children) then
+    local children = self:get_children()
+    if not gen.is_empty(children) then
         if self:is_closed() then
             lead = closed
         else
@@ -178,9 +180,10 @@ end
 --- Recursively sort the children of the current node.
 -- Only the order of the children in the various tables will be modified.
 function tree.NodeBase:sort_children_rec()
-    if not gen.is_empty(self.__children) then
-        table.sort(self.__children)
-        for k, child in ipairs(self.__children) do
+    local children = self:get_children()
+    if not gen.is_empty(children) then
+        table.sort(children)
+        for k, child in ipairs(children) do
             child:sort_children_rec()
         end
     end
@@ -259,9 +262,10 @@ function tree.NodeBase:tree(stylename, spacing, hide_me)
     end
 
     if not self:is_closed() then
-        for k, child in ipairs(self.__children) do
+        local children = self:get_children()
+        for k, child in ipairs(children) do
             local isfirst = (k == 1)
-            local islast  = (k == #self.__children)
+            local islast  = (k == #children)
             tree_rec(style, child, tree, padding, islast, isfirst)
         end
     end
