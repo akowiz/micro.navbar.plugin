@@ -5,11 +5,14 @@ local config = import("micro/config")
 local util = import("micro/util")
 local buffer = import("micro/buffer")
 
+package.path = "navbar/?.lua;" .. package.path
+
+local lgp = require('lang_python')
+
 local DISPLAY_NAME = 'navbar'
 
 -- Holds the micro.CurPane() we're manipulating
 local tree_view = nil
-
 
 
 -- Clear out all stuff in Micro's messenger
@@ -18,8 +21,46 @@ local function clear_messenger()
 	-- messenger:Clear()
 end
 
+local function display_content(buf)
+    local ret
+    local bytes = util.String(buf:Bytes())
+    local struc = lgp.export_structure_python(bytes)
+    local root  = lgp.tree_to_navbar(struc)
+    ret = root:tree('box', 0, true)
+    return ret
+end
+
+local function refresh_view(buf)
+    clear_messenger()
+
+    -- Delete everything
+	tree_view.Buf.EventHandler:Remove(tree_view.Buf:Start(), tree_view.Buf:End())
+
+	local ft = buf:FileType()
+
+	tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), 'Symbols\n\n')
+
+    if     ft == 'python' then
+        local msg = display_content(buf)
+        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), msg)
+
+    elseif ft == 'lua' then
+        local msg = 'Hopefully soon.\n'
+        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), msg)
+
+    else
+        local msg = 'Only python and lua\n(partially) are supported\nat the moment.\n'
+        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), msg)
+    end
+
+    tree_view:Tab():Resize()
+end
+
 -- open_tree setup's the view
 local function open_tree()
+    -- Retrieve the current buffer
+    local buf = micro.CurPane().Buf
+
 	-- Open a new Vsplit (on the very left)
 	micro.CurPane():VSplitIndex(buffer.NewBuffer("", DISPLAY_NAME), false)
 	-- Save the new view so we can access it later
@@ -46,6 +87,7 @@ local function open_tree()
     tree_view.Buf:SetOptionNative("scrollbar", false)
 
     -- Display the content
+    refresh_view(buf)
 end
 
 -- close_tree will close the tree plugin view and release memory.
