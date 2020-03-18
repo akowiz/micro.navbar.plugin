@@ -43,32 +43,40 @@ function lgp.match_python_item(line)
     local kind
     local ret = nil
 
-    -- match a function
-    indent, name = string.match(line, "^(%s*)def%s*([_%a%d]-)%s*%(")
-    if name then
-        kind = lgp.T_FUNCTION
-        indent = indent:len()
-        goto mpi_continue
+    local found = false
+
+    while not found do
+
+        -- match a function
+        indent, name = string.match(line, "^(%s*)def%s*([_%a%d]-)%s*%(")
+        if name then
+            kind = lgp.T_FUNCTION
+            indent = indent:len()
+            found = true
+            break
+        end
+
+        -- match a class
+        indent, name = string.match(line, "^(%s*)class%s*([_%a%d]-)%s*[(:]")
+        if name then
+            kind = lgp.T_CLASS
+            indent = indent:len()
+            found = true
+            break
+        end
+
+        -- match a variable
+        name = string.match(line, "^([_%a%d]-)%s*=[^=]")
+        if name then
+            kind = lgp.T_CONSTANT
+            found = true
+            break
+        end
+
+        break
     end
 
-    -- match a class
-    indent, name = string.match(line, "^(%s*)class%s*([_%a%d]-)%s*[(:]")
-    if name then
-        kind = lgp.T_CLASS
-        indent = indent:len()
-        goto mpi_continue
-    end
-
-    -- match a constant
-    name = string.match(line, "^([_%a%d]-)%s*=[^=]")
-    if name then
-        kind = lgp.T_CONSTANT
-        goto mpi_continue
-    end
-
-    ::mpi_continue::
-
-    if name then
+    if found then
         ret = lgp.Node(name, kind, indent)
     end
 
