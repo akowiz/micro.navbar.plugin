@@ -1,12 +1,13 @@
 #!/bin/env lua
 
-package.path = "navbar/?.lua;" .. package.path
+local gen  = require('generic')
 
-local gen = require('generic')
 
 --- @module navbar.tree
 local tree = {}
 
+
+local DEBUG = false
 
 -------------------------------------------------------------------------------
 -- Helper Functions
