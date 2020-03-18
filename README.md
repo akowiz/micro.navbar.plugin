@@ -55,6 +55,7 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 TODO
 ----
+- Add tests about having part of a tree open/closed.
 - Provide an interface to add support for more languages (make sure navbar_python only contains python-specific methods)
 - Display the python structure in the left pane.
 - Add actions (keyboard, mouse) to items in the left pane (goto, open, close).
