@@ -50,7 +50,7 @@ end
 -- @tparam table table A table.
 -- @param val A value.
 -- @tparam bool true if val is present in table.
-function gen.has_value(table, val)
+function gen.is_in(val, table)
     for index, value in ipairs(table) do
         if value == val then
             return true
