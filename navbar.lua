@@ -18,6 +18,7 @@ local tree_view = nil
 
 -- Clear out all stuff in Micro's messenger
 local function clear_messenger()
+	micro.InfoBar():Reset()
     -- messenger:Reset()
 	-- messenger:Clear()
 end
@@ -48,21 +49,22 @@ local function refresh_view(buf)
 
 	local ft = buf:FileType()
 	local fn = buf:GetName()
+	local content = ''
 
 	tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), 'Symbols\n\n')
 
     -- There seems to be a bug in micro FileType automatic recognition.
     if     (ft == 'python') or ((ft == '') and (fn:ends_with('.py'))) then
-        local msg = display_content(buf)
-        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), msg)
+        content = display_content(buf)
+        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
 
     elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
-        local msg = 'Hopefully soon.\n'
-        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), msg)
+		micro.InfoBar():Message(DISPLAY_NAME .. ": Support for lua files comming soon.")
+        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
 
     else
-        local msg = 'Only python and lua\n(partially) are supported\nat the moment.\n'
-        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), msg)
+		micro.InfoBar():Error(DISPLAY_NAME .. ": Only python language is currently supported.")
+        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
     end
 
     tree_view:Tab():Resize()
