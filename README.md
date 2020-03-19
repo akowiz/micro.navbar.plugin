@@ -58,7 +58,6 @@ TODO
 - Add proper documentation to navbar.
 - In addition to displaying the tree in the left panel, we need to provide a function that translate a line + action (+, -, ENTER) into a action for the script (open, fold, close). We will need to keep the tree in memory to set the open/close values of the nodes.
 - We need to keep the configuration of the side (buffer + main buffer) somewhere so that we can use it for updates (avoid opening a side buffer for a side buffer, etc.).
-- Sometimes the buf:FileType() is not reliable, maybe provide an alternative detection system using the extension of the file.
 - Add tests about having part of a tree open/closed.
 - Provide an interface to add support for more languages (make sure navbar_python only contains python-specific methods)
 - Add actions (keyboard, mouse) to items in the left pane (goto, open, close).

@@ -47,14 +47,16 @@ local function refresh_view(buf)
 	tree_view.Buf.EventHandler:Remove(tree_view.Buf:Start(), tree_view.Buf:End())
 
 	local ft = buf:FileType()
+	local fn = buf:GetName()
 
 	tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), 'Symbols\n\n')
 
-    if     ft == 'python' then
+    -- There seems to be a bug in micro FileType automatic recognition.
+    if     (ft == 'python') or ((ft == '') and (fn:ends_with('.py'))) then
         local msg = display_content(buf)
         tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), msg)
 
-    elseif ft == 'lua' then
+    elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
         local msg = 'Hopefully soon.\n'
         tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), msg)
 
@@ -118,7 +120,7 @@ function toggle_tree()
 	end
 end
 
-
+--- Initialize the navbar plugin.
 function init()
     config.AddRuntimeFile("navbar", config.RTHelp, "help/navbar.md")
     config.TryBindKey("F5", "lua:navbar.toggle_tree", false)
@@ -145,16 +147,13 @@ function init()
             micro.CurPane():NextSplit()
         else
             -- Log error so they can fix it
-            micro.Log(
-                "Warning: navbar.openonstart was enabled, but somehow the tree was already open so the option was ignored."
-            )
+            micro.Log("Warning: navbar.openonstart was enabled, but somehow the tree was already open so the option was ignored.")
         end
     end
-
 end
 
 --- Refresh the content of the tree whenever we save the original buffer.
--- @param bp BufferPanel.
+-- @tparam bufpane bp The buffer panel object.
 -- @treturn bool false
 function onSave(bp)
     if tree_view ~= nil then
