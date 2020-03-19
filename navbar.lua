@@ -152,3 +152,14 @@ function init()
     end
 
 end
+
+--- Refresh the content of the tree whenever we save the original buffer.
+-- @param bp BufferPanel.
+-- @treturn bool false
+function onSave(bp)
+    if tree_view ~= nil then
+        refresh_view(bp.Buf)
+    end
+    return false
+end
+
