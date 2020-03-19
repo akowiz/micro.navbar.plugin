@@ -1,4 +1,4 @@
-#!/bin/env lua
+
 
 --- @module navbar.generic
 local gen = {}

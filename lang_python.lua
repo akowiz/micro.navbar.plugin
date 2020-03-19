@@ -1,5 +1,3 @@
-#!/bin/env lua
-
 local gen  = require('generic')
 local tree = require('tree')
 

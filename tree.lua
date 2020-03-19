@@ -1,4 +1,4 @@
-#!/bin/env lua
+
 
 local gen  = require('generic')
 
