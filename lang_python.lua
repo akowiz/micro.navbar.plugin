@@ -138,7 +138,9 @@ end
 -- Main Functions
 -------------------------------------------------------------------------------
 
--- Export the python structure of a buffer containing python code
+--- Export the python structure of a buffer containing python code
+-- @tparam string str The string (buffer content) to analyse.
+-- @treturn Node A tree (made of Nodes) representing the structure.
 function lgp.export_structure_python(str)
     local root = lgp.Node('/')
 
@@ -184,8 +186,11 @@ function lgp.export_structure_python(str)
     return root
 end
 
+--- Convert a tree (made of Nodes) into 3 trees (made of Nodes)
+-- @tparam Node tree The tree to convert.
+-- @treturn table A table of trees.
 function lgp.tree_to_navbar(tree)
-    local root      = lgp.Node('/')
+    local ttree     = {}
     local classes   = lgp.Node('Classes')
     local functions = lgp.Node('Functions')
     local constants = lgp.Node('Variables')
@@ -200,12 +205,11 @@ function lgp.tree_to_navbar(tree)
         end
     end
 
-    root:append(classes)
-    root:append(functions)
-    root:append(constants)
-    table.sort(root:get_children())
+    ttree[lgp.T_CLASS] = classes
+    ttree[lgp.T_FUNCTION] = functions
+    ttree[lgp.T_CONSTANT] = constants
 
-    return root
+    return ttree
 end
 
 
