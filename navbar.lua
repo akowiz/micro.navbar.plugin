@@ -112,10 +112,12 @@ end
 function init()
     config.AddRuntimeFile("navbar", config.RTHelp, "help/navbar.md")
     config.TryBindKey("F5", "lua:navbar.toggle_tree", false)
+    config.TryBindKey("Alt-n", "lua:navbar.toggle_tree", false)
 
     -- Lets the user have the filetree auto-open any time Micro is opened
     -- false by default, as it's a rather noticable user-facing change
     config.RegisterCommonOption("navbar", "openonstart", false)
+    config.RegisterCommonOption("navbar", "treestyle", "bare")
 
     -- Open/close the tree view
     config.MakeCommand("navbar", toggle_tree, config.NoComplete)

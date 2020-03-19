@@ -1,3 +1,5 @@
+package.path = "navbar/?.lua;" .. package.path
+
 local gen  = require('generic')
 local tree = require('tree')
 
