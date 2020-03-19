@@ -8,6 +8,20 @@ local gen = {}
 -- Helper Functions
 -------------------------------------------------------------------------------
 
+--- Return true if string starts with start.
+-- @tparam string start The string we are looking for.
+-- @treturn bool true if the string starts with start.
+function string:starts_with(start)
+   return self:sub(1, #start) == start
+end
+
+--- Return true if string ends with ending.
+-- @tparam string ending The string we are looking for.
+-- @treturn bool true if the string ends with ending.
+function string:ends_with(ending)
+   return ending == "" or self:sub(-#ending) == ending
+end
+
 --- split function with a python semantic.
 --   see http://lua-users.org/wiki/SplitJoin
 -- @tparam string sep The character to use for the slit.
