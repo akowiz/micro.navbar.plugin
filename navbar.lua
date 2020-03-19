@@ -7,6 +7,7 @@ local buffer = import("micro/buffer")
 
 package.path = "navbar/?.lua;" .. package.path
 
+local gen = require('generic')
 local lgp = require('lang_python')
 
 local DISPLAY_NAME = 'navbar'
@@ -22,12 +23,21 @@ local function clear_messenger()
 end
 
 local function display_content(buf)
-    local ret
+    local ret = {}
+    local ttype = config.GetGlobalOption("navbar.treestyle")
+
+    if not gen.is_in(ttype, {'bare', 'ascii', 'box'}) then
+        ttype = 'bare' -- pick a default mode
+    end
+
     local bytes = util.String(buf:Bytes())
     local struc = lgp.export_structure_python(bytes)
-    local root  = lgp.tree_to_navbar(struc)
-    ret = root:tree('box', 0, true)
-    return ret
+    local ttree = lgp.tree_to_navbar(struc)
+    for k, v in ipairs(ttree) do
+        ret[#ret+1] = v:tree(ttype, 0) .. '\n\n'
+    end
+
+    return table.concat(ret)
 end
 
 local function refresh_view(buf)
