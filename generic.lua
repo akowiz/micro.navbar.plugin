@@ -46,6 +46,19 @@ function gen.is_empty(table)
     return next(table) == nil
 end
 
+--- Return true if val is present in table, false otherwise
+-- @tparam table table A table.
+-- @param val A value.
+-- @tparam bool true if val is present in table.
+function gen.has_value(table, val)
+    for index, value in ipairs(table) do
+        if value == val then
+            return true
+        end
+    end
+    return false
+end
+
 --- Return a Class object
 --
 -- @usage local Rectangle = gen.Class()
