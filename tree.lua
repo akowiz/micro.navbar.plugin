@@ -24,9 +24,9 @@ function tree.get_style(stylename, spacing)
 
     ret = {}
     if     stylename == 'bare' then
-        ret['root']         = '.'..string.rep('─', spacing)..' '
-        ret['root_open']    = 'v'..string.rep('─', spacing)..' '
-        ret['root_closed']  = '>'..string.rep('─', spacing)..' '
+        ret['root']         = '.'..string.rep('', spacing)..' '
+        ret['root_open']    = 'v'..string.rep('', spacing)..' '
+        ret['root_closed']  = '>'..string.rep('', spacing)..' '
         ret['1st_level_1st_key']        = '.'..string.rep(' ', spacing)..' '
         ret['1st_level_1st_key_open']   = 'v'..string.rep(' ', spacing)..' '
         ret['1st_level_1st_key_closed'] = '>'..string.rep(' ', spacing)..' '
@@ -40,9 +40,9 @@ function tree.get_style(stylename, spacing)
         ret['link']  = ' '..string.rep(' ', spacing)..' '
 
     elseif stylename == 'ascii' then
-        ret['root']         = '.'..string.rep('─', spacing)..' '
-        ret['root_open']    = '-'..string.rep('─', spacing)..' '
-        ret['root_closed']  = '+'..string.rep('─', spacing)..' '
+        ret['root']         = '.'..string.rep('', spacing)..' '
+        ret['root_open']    = '-'..string.rep('', spacing)..' '
+        ret['root_closed']  = '+'..string.rep('', spacing)..' '
         ret['1st_level_1st_key']        = '.'..string.rep(' ', spacing)..' '
         ret['1st_level_1st_key_open']   = '-'..string.rep(' ', spacing)..' '
         ret['1st_level_1st_key_closed'] = '+'..string.rep(' ', spacing)..' '
@@ -56,9 +56,9 @@ function tree.get_style(stylename, spacing)
         ret['link']  = '|'..string.rep(' ', spacing)..' '
 
     elseif stylename == 'box' then
-        ret['root']         = ' '..string.rep('─', spacing)..' '
-        ret['root_open']    = '▾'..string.rep('─', spacing)..' '
-        ret['root_closed']  = '▸'..string.rep('─', spacing)..' '
+        ret['root']         = ' '..string.rep('', spacing)..' '
+        ret['root_open']    = '▾'..string.rep('', spacing)..' '
+        ret['root_closed']  = '▸'..string.rep('', spacing)..' '
         ret['1st_level_1st_key']        = '├'..string.rep('─', spacing)..' '
         ret['1st_level_1st_key_open']   = '├'..string.rep('─', spacing)..' '
         ret['1st_level_1st_key_closed'] = '╞'..string.rep('═', spacing)..' '
