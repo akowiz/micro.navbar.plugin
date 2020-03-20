@@ -61,8 +61,8 @@ function gen.is_empty(table)
 end
 
 --- Return true if val is present in table, false otherwise
--- @tparam table table A table.
 -- @param val A value.
+-- @tparam table table A table.
 -- @tparam bool true if val is present in table.
 function gen.is_in(val, table)
     for index, value in ipairs(table) do

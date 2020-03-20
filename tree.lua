@@ -274,7 +274,6 @@ function tree.NodeBase:tree(stylename, spacing, hide_me)
     return table.concat(tree, '\n')
 end
 
-
 --- NodeSimple inherit from NodeBase
 -- @type NodeSimple
 tree.NodeSimple = gen.class(tree.NodeBase)
