@@ -1,5 +1,10 @@
 --- @module navbar.tree
 
+local nvb_path = "navbar/?.lua;"
+if not string.find(package.path, nvb_path) then
+    package.path = nvb_path .. package.path
+end
+
 local tree = {}
 
 

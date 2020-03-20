@@ -1,6 +1,10 @@
 VERSION = "0.0.1"
 
-package.path = "navbar/?.lua;" .. package.path
+local nvb_path = "navbar/?.lua;"
+if not string.find(package.path, "navbar") then
+    package.path = nvb_path .. package.path
+end
+
 
 local micro = import("micro")
 local config = import("micro/config")
