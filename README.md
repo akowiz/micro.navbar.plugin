@@ -56,9 +56,9 @@ Current implementation should be easy to adapt to any language using fix indenta
 TODO
 ----
 - Add proper documentation to navbar.
+- Refcatoring the code used to build tree and list.
 - In addition to displaying the tree in the left panel, we need to provide a function that translate a line + action (+, -, ENTER) into a action for the script (open, fold, close). We will need to keep the tree in memory to set the open/close values of the nodes.
-- We need to keep the configuration of the side (buffer + main buffer and tabs) somewhere so that we can use it for updates (avoid opening a side buffer for a side buffer, etc.).
+- We need to keep the configuration of the side bp:ID() (buffer + main buffer and tabs) somewhere so that we can use it for updates (avoid opening a side buffer for a side buffer, etc.).
 - Add tests about having part of a tree open/closed.
 - Provide an interface to add support for more languages (make sure navbar_python only contains python-specific methods)
-- Add actions (keyboard, mouse) to items in the left pane (goto, open, close). (Cursor:GotoLoc())
 - Setup sane default (all open, all closed, level1 open).
