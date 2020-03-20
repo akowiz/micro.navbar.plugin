@@ -1,4 +1,5 @@
 --- @module navbar.generic
+
 local gen = {}
 
 
