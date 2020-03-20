@@ -281,7 +281,10 @@ end
 --- Convert a tree (made of Nodes) into 3 trees (made of Nodes)
 -- @tparam Node tree The tree to convert.
 -- @treturn table A list of {display_text, line}.
-function lgp.tree_to_navbar(tree)
+function lgp.tree_to_navbar(tree, stylename, spacing)
+    stylename = stylename or 'bare'
+    spacing = spacing or 0
+
     local ttree
     local classes   = lgp.Node('Classes')
     local functions = lgp.Node('Functions')
@@ -297,15 +300,15 @@ function lgp.tree_to_navbar(tree)
         end
     end
 
-    ttree = classes:list()
+    ttree = classes:list(stylename, spacing)
     table.insert(ttree, { text = '', node = nil })
 
-    for _, v in ipairs(functions:list()) do
+    for _, v in ipairs(functions:list(stylename, spacing)) do
         table.insert(ttree, v)
     end
     table.insert(ttree, { text = '', node = nil })
 
-    for _, v in ipairs(constants:list()) do
+    for _, v in ipairs(constants:list(stylename, spacing)) do
         table.insert(ttree, v)
     end
 

@@ -34,6 +34,7 @@ end
 local function display_content(buf)
     local ret = {}
     local ttype = config.GetGlobalOption("navbar.treestyle")
+    local tspace = config.GetGlobalOption("navbar.treestyle_spacing")
 
     if not gen.is_in(ttype, {'bare', 'ascii', 'box'}) then
         ttype = 'bare' -- pick a default mode
@@ -41,7 +42,7 @@ local function display_content(buf)
 
     local bytes = util.String(buf:Bytes())
     local struc = lgp.export_structure_python(bytes)
-    local ttree = lgp.tree_to_navbar(struc)
+    local ttree = lgp.tree_to_navbar(struc, ttype, tspace)
 
     local display_text = {}
 
@@ -334,6 +335,7 @@ function init()
     -- false by default, as it's a rather noticable user-facing change
     config.RegisterCommonOption("navbar", "openonstart", false)
     config.RegisterCommonOption("navbar", "treestyle", "bare")
+    config.RegisterCommonOption("navbar", "treestyle_spacing", 0)
     config.RegisterCommonOption("navbar", "softwrap", false)
 
     -- Open/close the tree view
