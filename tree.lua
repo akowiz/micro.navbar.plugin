@@ -1,10 +1,8 @@
+--- @module navbar.tree
+local tree = {}
 
 
 local gen  = require('generic')
-
-
---- @module navbar.tree
-local tree = {}
 
 
 local DEBUG = false
