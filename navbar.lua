@@ -280,7 +280,13 @@ local function open_tree()
     -- Set the various display settings, but only on our view (by using SetLocalOption instead of SetOption)
     -- NOTE: Micro requires the true/false to be a string
     -- Softwrap long strings (the file/dir paths)
-    tree_view.Buf:SetOptionNative("softwrap", true)
+    local sw = config.GetGlobalOption("navbar.softwrap")
+    if sw then
+        sw = true
+    else
+        sw = false
+    end
+    tree_view.Buf:SetOptionNative("softwrap", sw)
     -- No line numbering
     tree_view.Buf:SetOptionNative("ruler", false)
     -- Is this needed with new non-savable settings from being "vtLog"?
@@ -328,6 +334,7 @@ function init()
     -- false by default, as it's a rather noticable user-facing change
     config.RegisterCommonOption("navbar", "openonstart", false)
     config.RegisterCommonOption("navbar", "treestyle", "bare")
+    config.RegisterCommonOption("navbar", "softwrap", false)
 
     -- Open/close the tree view
     config.MakeCommand("navbar", toggle_tree, config.NoComplete)
