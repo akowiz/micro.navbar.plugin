@@ -1,11 +1,12 @@
 VERSION = "0.0.1"
 
+package.path = "navbar/?.lua;" .. package.path
+
 local micro = import("micro")
 local config = import("micro/config")
 local util = import("micro/util")
 local buffer = import("micro/buffer")
 
-package.path = "navbar/?.lua;" .. package.path
 
 local gen = require('generic')
 local lgp = require('lang_python')

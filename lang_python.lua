@@ -1,8 +1,9 @@
 --- @module navbar.lang_python
+
+-- package.path = "navbar/?.lua;" .. package.path
+
 local lgp = {}
 
-
-package.path = "navbar/?.lua;" .. package.path
 
 local gen  = require('generic')
 local tree = require('tree')

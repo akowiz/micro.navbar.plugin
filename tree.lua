@@ -1,4 +1,5 @@
 --- @module navbar.tree
+
 local tree = {}
 
 
