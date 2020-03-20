@@ -56,6 +56,7 @@ Current implementation should be easy to adapt to any language using fix indenta
 TODO
 ----
 - Properly handle opening/closing a node, and not loosing the settings after refreshing the view (which currently rebuild the list from scratch).
+- Add lua support.
 - Add ability to save the open/close status in between sessions (using json to store the data?)
 - Add proper documentation to navbar.
 - Refcatoring the code used to build tree and list.
