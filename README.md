@@ -55,6 +55,8 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 TODO
 ----
+- Properly handle opening/closing a node, and not loosing the settings after refreshing the view (which currently rebuild the list from scratch).
+- Add ability to save the open/close status in between sessions (using json to store the data?)
 - Add proper documentation to navbar.
 - Refcatoring the code used to build tree and list.
 - In addition to displaying the tree in the left panel, we need to provide a function that translate a line + action (+, -, ENTER) into a action for the script (open, fold, close). We will need to keep the tree in memory to set the open/close values of the nodes.
