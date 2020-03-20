@@ -101,7 +101,7 @@ lgp.Node = gen.class(tree.NodeSimple)
 function lgp.Node:__init(name, kind, indent, line, closed)
     tree.NodeSimple.__init(self, name, closed)
     self.kind = kind or lgp.T_NONE
-    self.line = line or 0
+    self.line = line or -1
     self.indent = indent or 0
 end
 
