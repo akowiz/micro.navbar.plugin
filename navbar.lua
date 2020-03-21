@@ -14,6 +14,7 @@ local buffer = import("micro/buffer")
 
 local gen = require('generic')
 local lgp = require('lang_python')
+local lgl = require('lang_lua')
 
 local DISPLAY_NAME = 'navbar'
 
@@ -52,6 +53,9 @@ local function display_content(buf, language)
     if     language == 'python' then
         struc = lgp.export_structure(bytes)
         ttree = lgp.tree_to_navbar(struc, ttype, tspace)
+    elseif language == 'lua' then
+        struc = lgl.export_structure(bytes)
+        ttree = lgl.tree_to_navbar(struc, ttype, tspace)
     else
         struc = nil
     end
@@ -88,6 +92,7 @@ local function refresh_view(buf)
         content = display_content(buf, 'python')
 
     elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
+        content = display_content(buf, 'lua')
 
     else
         micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
