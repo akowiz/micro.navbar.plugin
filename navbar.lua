@@ -212,7 +212,7 @@ function preRune(view, rune)
     local rune_goto = config.GetGlobalOption("navbar.treeview_rune_goto")
 
     if view ~= tree_view then
-        return false
+        return
     else
         if rune == rune_open then
             nvb_node_open()
@@ -221,6 +221,7 @@ function preRune(view, rune)
         elseif rune == rune_goto then
             nvb_goto_line()
         end
+        return false
     end
 end
 
@@ -350,9 +351,6 @@ function init()
     config.AddRuntimeFile("navbar", config.RTHelp, "help/navbar.md")
     config.TryBindKey("F5", "lua:navbar.toggle_tree", false)
     config.TryBindKey("Alt-n", "lua:navbar.toggle_tree", false)
-    config.TryBindKey("F6", "lua:navbar.nvb_goto_line", false)
-    config.TryBindKey("F7", "lua:navbar.nvb_node_open", false)
-    config.TryBindKey("F8", "lua:navbar.nvb_node_close", false)
 
     -- Lets the user have the filetree auto-open any time Micro is opened
     -- false by default, as it's a rather noticable user-facing change
