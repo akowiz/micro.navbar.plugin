@@ -60,7 +60,7 @@ function tree.get_style(stylename, spacing)
         ret['link']  = '|'..string.rep(' ', spacing)..' '
 
     elseif stylename == 'box' then
-        ret['root']         = ' '..string.rep('', spacing)..' '
+        ret['root']         = '.'..string.rep('', spacing)..' '
         ret['root_open']    = '▾'..string.rep('', spacing)..' '
         ret['root_closed']  = '▸'..string.rep('', spacing)..' '
         ret['1st_level_1st_key']        = '├'..string.rep('─', spacing)..' '
@@ -302,6 +302,21 @@ end
 function tree.NodeSimple:is_closed()
     return self.closed
 end
+
+--- Check if the node has a child named name
+-- @tparam string name The name to look for among our children.
+-- @treturn Node The node corresponding to the name or nil if not found.
+function tree.NodeSimple:get_child_named(name)
+    found = nil
+    for _, c in ipairs(self:get_children()) do
+        if c.name == name then
+            found = c
+            break
+        end
+    end
+    return found
+end
+
 
 -------------------------------------------------------------------------------
 -- Module

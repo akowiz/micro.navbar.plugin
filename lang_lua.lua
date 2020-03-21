@@ -45,11 +45,10 @@ end
 -- @treturn {string, Node} An object recording the information about the item, or nil if we identify nothing.
 function lgl.match_lua_item(line)
     local indent = 0
-    local name
+    local name = nil
     local kind
 
     local node = nil
-
     local found = false
 
     while not found do
@@ -88,9 +87,6 @@ function lgl.match_lua_item(line)
     end
 
     if found then
-        -- if name:contains('%.') or name:contains(':') then
-            -- object, name = string.match(name, "([_%w]+)[.:]([_%w]+)")
-        -- end
         node = lgl.Node(name, kind)
     end
 
@@ -258,9 +254,7 @@ function lgl.export_structure(str)
     for nb, line in ipairs(lines) do
 
         node = lgl.match_lua_item(line)
-
         if node then
-            -- FIXME: need to handle object here
             node.line = nb
             parent = root
             parent:append(node)
@@ -284,14 +278,84 @@ function lgl.tree_to_navbar(tree, stylename, spacing)
     local functions = lgl.Node('Functions')
     local constants = lgl.Node('Variables')
 
-    for k, v in ipairs(tree:get_children()) do
-        -- print(v)
+    local children = tree:get_children()
+    table.sort(children)
+
+    for k, v in ipairs(children) do
+
         if v.kind == lgl.T_CLASS then
             classes:append(v)
+
         elseif v.kind == lgl.T_FUNCTION then
-            functions:append(v)
+            if not (v.name:contains(':') or v.name:contains('.')) then
+                functions:append(v)
+            else
+                local objects
+                local name
+                local current
+                local item
+
+                if v.name:contains(':') then
+                    objects, name = string.match(v.name, "([._%w]+)[:]([_%w]+)")
+                    objects = objects:split('.')
+                else
+                    objects = v.name:split('.')
+                    name = objects[#objects]
+                    objects[#objects] = nil
+                end
+
+                current = classes
+                for i, o in ipairs(objects) do
+                    item = current:get_child_named(o)
+                    if item == nil then
+                        item = lgl.Node(o, lgl.T_CLASS)
+                        current:append(item)
+                        current = item
+                    else
+                        current = item
+                    end
+                end
+                v.name = name
+                current:append(v)
+            end
+
         elseif v.kind == lgl.T_CONSTANT then
-            constants:append(v)
+            if v.name:contains('.') then
+                local objects
+                local name
+                local current
+                local item
+
+                objects = v.name:split('.')
+                name = objects[#objects]
+                objects[#objects] = nil
+                v.name = name
+
+                current = classes
+                for i, o in ipairs(objects) do
+                    item = current:get_child_named(o)
+                    if item == nil then
+                        item = lgl.Node(o, lgl.T_CLASS)
+                        current:append(item)
+                        current = item
+                    else
+                        current = item
+                    end
+                end
+                item = current:get_child_named(v.name)
+                if item then
+                    item.line = v.line
+                else
+                    current:append(v)
+                end
+            else
+                item = classes:get_child_named(v.name)
+                if item then
+                    item.line = v.line
+                else
+                    constants:append(v)
+                end
+            end
         end
     end
 
