@@ -21,6 +21,16 @@ function string:ends_with(ending)
    return ending == "" or self:sub(-#ending) == ending
 end
 
+--- Return true if string contains str.
+-- @tparam string str The string we are looking for.
+-- @treturn bool true if the string contains str.
+function string:contains(str)
+    if string.find(self, str) == nil then
+        return false
+    end
+    return true
+end
+
 --- split function with a python semantic.
 --   see http://lua-users.org/wiki/SplitJoin
 -- @tparam string sep The character to use for the slit.
