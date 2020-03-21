@@ -49,6 +49,16 @@ Supported Languages
 -------------------
 - Python
 
+Settings
+--------
+- openonstart: bool (true or false), set to true to open when micro is open. Default to false.
+- treestyle: string ('bare', 'ascii', 'box'), the style to use to display the tree. Default to 'bare'.
+- treestyle_spacing: int (0, 1, etc.), the number of extra-characters to use for the tree branch. Default to 0.
+- softwrap: bool (true or false), set to true to use wrapping in the treeview window. Default to false.
+- treeview_rune_open: string (single letter), the key to use in the tree_view to open a node that is closed. Default to '+'.
+- treeview_rune_close: string (single letter), the key to use in the tree_view to open a node that is closed. Default to '-'.
+- treeview_rune_goto: string (single letter), the key to use in the tree_view to move the cursor in the main_view to the corresponding item. Default to ' '.
+
 Notes
 -----
 Current implementation should be easy to adapt to any language using fix indentation (like the python language). For other languages, we would need to rely on another mecanism (micro has built-in syntax analysis, not sure how we can access it from the plugin).
@@ -56,6 +66,7 @@ Current implementation should be easy to adapt to any language using fix indenta
 TODO
 ----
 - Properly handle opening/closing a node, and not loosing the settings after refreshing the view (which currently rebuild the list from scratch).
+- Properly handle when the screen has been splitted already.
 - Add lua support.
 - Add ability to save the open/close status in between sessions (using json to store the data?)
 - Add proper documentation to navbar.
