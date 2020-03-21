@@ -47,7 +47,9 @@ v Variables
 
 Supported Languages
 -------------------
-- Python
+- Python: Python is a fairly rigid programming language (use of indentation, etc.) and I wrote a line parser for it that should work in most situations.
+
+- Lua : Lua is a fairly flexible programming language. It supports object oriented programming but not at the language level (meaning there are multiple ways to implement classes). So, I resorted to write a line parser (a bit of a hack) and it should work as long as your write "clean" code (if your code looks more like python actually). It will "break" (not display all data) if your program looks like the result of a minifier (a program on a single line). I needed to support lua for my own development process (so I build the minimum to support my needs).
 
 Settings
 --------
@@ -76,3 +78,4 @@ TODO
 - Add tests about having part of a tree open/closed.
 - Provide an interface to add support for more languages (make sure navbar_python only contains python-specific methods)
 - Setup sane default (all open, all closed, level1 open).
+- Rely on a proper parser to extract the symbols from the buffer (it is being done for syntax highlighting, it should be possible to piggyback on the process for our own purpose).
