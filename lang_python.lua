@@ -236,7 +236,7 @@ end
 --- Export the python structure of a buffer containing python code
 -- @tparam string str The string (buffer content) to analyse.
 -- @treturn Node A tree (made of Nodes) representing the structure.
-function lgp.export_structure_python(str)
+function lgp.export_structure(str)
     local root = lgp.Node('/')
 
     local parents = {}   -- table of parents indexed by indent

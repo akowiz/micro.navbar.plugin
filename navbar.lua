@@ -36,7 +36,7 @@ local function clear_messenger()
     -- messenger:Clear()
 end
 
-local function display_content(buf)
+local function display_content(buf, language)
     local ret = {}
     local ttype = config.GetGlobalOption("navbar.treestyle")
     local tspace = config.GetGlobalOption("navbar.treestyle_spacing")
@@ -46,8 +46,15 @@ local function display_content(buf)
     end
 
     local bytes = util.String(buf:Bytes())
-    local struc = lgp.export_structure_python(bytes)
-    local ttree = lgp.tree_to_navbar(struc, ttype, tspace)
+    local struc
+    local ttree
+
+    if     language == 'python' then
+        struc = lgp.export_structure(bytes)
+        ttree = lgp.tree_to_navbar(struc, ttype, tspace)
+    else
+        struc = nil
+    end
 
     local display_text = {}
 
@@ -78,18 +85,15 @@ local function refresh_view(buf)
 
     -- There seems to be a bug in micro FileType automatic recognition.
     if     (ft == 'python') or ((ft == '') and (fn:ends_with('.py'))) then
-        content = display_content(buf)
-        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
+        content = display_content(buf, 'python')
 
     elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
-        micro.InfoBar():Message(DISPLAY_NAME .. ": Support for lua files comming soon.")
-        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
 
     else
-        micro.InfoBar():Error(DISPLAY_NAME .. ": Only python language is currently supported.")
-        tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
+        micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
     end
 
+    tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
     tree_view:Tab():Resize()
 end
 
