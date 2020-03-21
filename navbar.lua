@@ -206,6 +206,24 @@ function preFind(view)
     clearselection_if_tree(view)
 end
 
+function preRune(view, rune)
+    local rune_open = config.GetGlobalOption("navbar.treeview_rune_open")
+    local rune_close = config.GetGlobalOption("navbar.treeview_rune_close")
+    local rune_goto = config.GetGlobalOption("navbar.treeview_rune_goto")
+
+    if view ~= tree_view then
+        return false
+    else
+        if rune == rune_open then
+            nvb_node_open()
+        elseif rune == rune_close then
+            nvb_node_close()
+        elseif rune == rune_goto then
+            nvb_goto_line()
+        end
+    end
+end
+
 -- FIXME: doesn't work for whatever reason
 function onFind(view)
     -- Select the whole line after a find, instead of just the input txt
@@ -342,6 +360,9 @@ function init()
     config.RegisterCommonOption("navbar", "treestyle", "bare")
     config.RegisterCommonOption("navbar", "treestyle_spacing", 0)
     config.RegisterCommonOption("navbar", "softwrap", false)
+    config.RegisterCommonOption("navbar", "treeview_rune_open", '+')
+    config.RegisterCommonOption("navbar", "treeview_rune_close", '-')
+    config.RegisterCommonOption("navbar", "treeview_rune_goto", ' ')
 
     -- Open/close the tree view
     config.MakeCommand("navbar", toggle_tree, config.NoComplete)
