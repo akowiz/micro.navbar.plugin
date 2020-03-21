@@ -47,7 +47,8 @@ function lgl.match_lua_item(line)
     local indent = 0
     local name
     local kind
-    local ret = { object=nil, node=nil }
+
+    local node = nil
 
     local found = false
 
@@ -87,14 +88,13 @@ function lgl.match_lua_item(line)
     end
 
     if found then
-        local object
-        if name:contains('%.') or name:contains(':') then
-            object, name = string.match(name, "([_%w]+)[.:]([_%w]+)")
-        end
-        ret = {object=object, node=lgl.Node(name, kind)}
+        -- if name:contains('%.') or name:contains(':') then
+            -- object, name = string.match(name, "([_%w]+)[.:]([_%w]+)")
+        -- end
+        node = lgl.Node(name, kind)
     end
 
-    return ret
+    return node
 end
 
 
@@ -257,7 +257,7 @@ function lgl.export_structure(str)
     local lines = str:split('\n')
     for nb, line in ipairs(lines) do
 
-        object, node = lgl.match_lua_item(line)
+        node = lgl.match_lua_item(line)
 
         if node then
             -- FIXME: need to handle object here
@@ -285,6 +285,7 @@ function lgl.tree_to_navbar(tree, stylename, spacing)
     local constants = lgl.Node('Variables')
 
     for k, v in ipairs(tree:get_children()) do
+        -- print(v)
         if v.kind == lgl.T_CLASS then
             classes:append(v)
         elseif v.kind == lgl.T_FUNCTION then
