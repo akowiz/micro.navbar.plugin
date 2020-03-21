@@ -22,10 +22,12 @@ function string:ends_with(ending)
 end
 
 --- Return true if string contains str.
+-- Notes: we will escape all punctuations contained in str first.
 -- @tparam string str The string we are looking for.
 -- @treturn bool true if the string contains str.
 function string:contains(str)
-    if string.find(self, str) == nil then
+    local pat = string.gsub(str, "%p", "%%%1")
+    if string.find(self, pat) == nil then
         return false
     end
     return true
