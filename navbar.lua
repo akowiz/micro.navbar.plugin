@@ -17,6 +17,8 @@ local lgp = require('lang_python')
 local lgl = require('lang_lua')
 
 local DISPLAY_NAME = 'navbar'
+local SIZE_MIN = 15
+
 
 -- Holds the micro.CurPane() we're manipulating
 local main_view = nil -- The original panel
@@ -27,6 +29,43 @@ local node_list = nil
 local tree_views = {}
 
 
+
+--- Retrieve the global option, validate it against a list and provide default if value is not in list.
+-- @tparam string name Name of the global option.
+-- @tparam values table Table of valid values.
+-- @param default Default value to use if the current option is not in values (must be in values).
+-- @return A valid option.
+function get_option_among_list(name, values, default)
+    default = default or values[1]
+    local current = config.GetGlobalOption(name)
+    if current then
+        if not gen.is_in(current, values) then
+            if gen.is_in(default, values) then
+                current = default
+            else
+                error('Default value ' .. default .. " for '" .. name .. "' is not in the list of valid values.")
+            end
+        end
+    end
+    return current
+end
+
+--- Retrieve the global option, validate it against a min and max, provide default if value is not in range.
+-- @tparam string name Name of the global option.
+-- @tparam int lower Minimum value or nil if there is no minimum.
+-- @tparam int upper Maximum value or nil if there is no maximum.
+-- @treturn int A valid option.
+function get_option_among_range(name, lower, upper)
+    local current = config.GetGlobalOption(name)
+    if current then
+        if     lower and (current < lower) then
+            current = lower
+        elseif upper and (current > upper) then
+            current = upper
+        end
+    end
+    return current
+end
 
 
 
@@ -39,12 +78,8 @@ end
 
 local function display_content(buf, language)
     local ret = {}
-    local ttype = config.GetGlobalOption("navbar.treestyle")
-    local tspace = config.GetGlobalOption("navbar.treestyle_spacing")
-
-    if not gen.is_in(ttype, {'bare', 'ascii', 'box'}) then
-        ttype = 'bare' -- pick a default mode
-    end
+    local ttype  = get_option_among_list("navbar.treestyle", {'bare', 'ascii', 'box'})
+    local tspace = get_option_among_range("navbar.treestyle_spacing", 0, nil)
 
     local bytes = util.String(buf:Bytes())
     local struc
@@ -304,23 +339,22 @@ local function open_tree()
     -- Save the new view so we can access it later
     tree_view = micro.CurPane()
 
-    -- Set the width of tree_view to 30% & lock it
-    tree_view:ResizePane(30)
+    -- Set the width of tree_view (in characters)
+    local size = get_option_among_range('navbar.treeview_size', SIZE_MIN)
+    tree_view:ResizePane(size)
+
     -- Set the type to unsavable
     -- tree_view.Buf.Type = buffer.BTLog
     tree_view.Buf.Type.Scratch = true
     tree_view.Buf.Type.Readonly = true
 
-    -- Set the various display settings, but only on our view (by using SetLocalOption instead of SetOption)
-    -- NOTE: Micro requires the true/false to be a string
-    -- Softwrap long strings (the file/dir paths)
-    local sw = config.GetGlobalOption("navbar.softwrap")
-    if sw then
-        sw = true
-    else
-        sw = false
-    end
+    -- Set the various display settings, but only on our view (by using
+    -- SetLocalOption instead of SetOption)
+
+    -- Set the softwrap value for treeview
+    local sw = get_option_among_list('navbar.softwrap', {true, false}, false)
     tree_view.Buf:SetOptionNative("softwrap", sw)
+
     -- No line numbering
     tree_view.Buf:SetOptionNative("ruler", false)
     -- Is this needed with new non-savable settings from being "vtLog"?
@@ -367,6 +401,7 @@ function init()
     config.RegisterCommonOption("navbar", "treestyle", "bare")
     config.RegisterCommonOption("navbar", "treestyle_spacing", 0)
     config.RegisterCommonOption("navbar", "softwrap", false)
+    config.RegisterCommonOption("navbar", "treeview_size", 25)
     config.RegisterCommonOption("navbar", "treeview_rune_open", '+')
     config.RegisterCommonOption("navbar", "treeview_rune_close", '-')
     config.RegisterCommonOption("navbar", "treeview_rune_goto", ' ')
@@ -383,7 +418,8 @@ function init()
     -- NOTE: This must be below the syntax load command or coloring won't work
     -- Just auto-open if the option is enabled
     -- This will run when the plugin first loads
-    if config.GetGlobalOption("navbar.openonstart") then
+    local open_on_start = get_option_among_list('navbar.openonstart', {true, false}, false)
+    if open_on_start then
         -- Check for safety on the off-chance someone's init.lua breaks this
         if tree_view == nil then
             open_tree()

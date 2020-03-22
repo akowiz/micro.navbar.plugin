@@ -49,7 +49,7 @@ Supported Languages
 -------------------
 - Python: Python is a fairly rigid programming language (use of indentation, etc.) and I wrote a line parser for it that should work in most situations.
 
-- Lua : Lua is a fairly flexible programming language. It supports object oriented programming but not at the language level (meaning there are multiple ways to implement classes). So, I resorted to write a line parser (a bit of a hack) and it should work as long as your write "clean" code (if your code looks more like python actually). It will "break" (not display all data) if your program looks like the result of a minifier (a program on a single line). I needed to support lua for my own development process (so I build the minimum to support my needs).
+- Lua : Lua is a fairly flexible programming language. It supports object oriented programming but not at the language level (meaning there are multiple ways to implement classes). So, I resorted to write a line parser (a bit of a hack) and it should work as long as your write "clean" code (if your code looks more like python actually). It will "break" (not display all data) if your program looks like the result of a minifier (a program on a single line) or if you use inner functions. I needed to support lua for my own development process (so I build the minimum to support my needs).
 
 Settings
 --------
