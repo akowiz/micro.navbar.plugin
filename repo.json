@@ -1,7 +1,7 @@
 [{
   "Name": "navbar",
-  "Description": "Plugin to navigate through a file using a navbar.",
-  "Tags": ["navigation", "classes", "functions"],
+  "Description": "Plugin to navigate through a file using a navigation bar.",
+  "Tags": ["navigation", "classes", "functions", "variables", "constants"],
   "Website": "https://github.com/",
   "Versions": [
     {
