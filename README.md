@@ -65,6 +65,10 @@ Notes
 -----
 Current implementation should be easy to adapt to any language using fix indentation (like the python language). For other languages, we would need to rely on another mecanism (micro has built-in syntax analysis, not sure how we can access it from the plugin).
 
+BUGS
+----
+- Error if micro is not run from the development folder (this is a big issue) because extra modules (generic, etc.) can not be found.
+
 TODO
 ----
 - Split tests for the python/lua languages in a separate files.
