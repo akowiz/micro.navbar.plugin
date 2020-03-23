@@ -51,7 +51,7 @@ function lg.tree_to_navbar(tree, stylename, spacing)
     stylename = stylename or 'bare'
     spacing = spacing or 0
 
-    local tl_list = tree:list_tree(stylename, spacing)
+    local tl_list = tree:to_treelines(stylename, spacing)
 
     return tl_list
 end

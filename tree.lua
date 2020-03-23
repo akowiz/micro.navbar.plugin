@@ -304,7 +304,7 @@ end
 -- @tparam int spacing The number of extra characters to add in the lead.
 -- @tparam bool hide_me Set to true to 'hide' the current node (i.e. only display its' children)
 -- @treturn table A list of TreeLine() objects.
-function tree.NodeBase:list_tree(stylename, spacing, hide_me)
+function tree.NodeBase:to_treelines(stylename, spacing, hide_me)
     -- Returns the tree (current node as root) in a string.
     stylename = stylename or 'bare'
     spacing = spacing or 0

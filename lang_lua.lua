@@ -197,15 +197,15 @@ function lgl.tree_to_navbar(node, stylename, spacing)
 
     local empty_line = tree.TreeLine()
 
-    tl_list = objects:list_tree(stylename, spacing)
+    tl_list = objects:to_treelines(stylename, spacing)
     table.insert(tl_list, empty_line)
 
-    for _, tl in ipairs(functions:list_tree(stylename, spacing)) do
+    for _, tl in ipairs(functions:to_treelines(stylename, spacing)) do
         table.insert(tl_list, tl)
     end
     table.insert(tl_list, empty_line)
 
-    for _, tl in ipairs(variables:list_tree(stylename, spacing)) do
+    for _, tl in ipairs(variables:to_treelines(stylename, spacing)) do
         table.insert(tl_list, tl)
     end
 
