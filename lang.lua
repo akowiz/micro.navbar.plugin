@@ -44,6 +44,19 @@ function lg.kind_to_str(kind)
     return ret
 end
 
+--- Convert a tree (made of Nodes) into a list of TreeLine (used to display our navbar).
+-- @tparam Node tree The tree to convert.
+-- @treturn table A list of TreeLine.
+function lg.tree_to_navbar(tree, stylename, spacing)
+    stylename = stylename or 'bare'
+    spacing = spacing or 0
+
+    local tl_list = tree:list_tree(stylename, spacing)
+
+    return tl_list
+end
+
+
 -------------------------------------------------------------------------------
 -- Data Structures
 -------------------------------------------------------------------------------
@@ -222,6 +235,80 @@ function lg.Node:list(stylename, spacing, hide_me)
             local islast  = (k == #children)
             list_rec(style, child, list, padding, islast, isfirst)
         end
+    end
+
+    return list
+end
+
+
+
+--- Recursively build a tree representation of the current node as a list of TreeLine.
+-- The table tree is used to accumulate the result of the recursion.
+-- @tparam table style A style table to be used to display items.
+-- @tparam Node node The node to process.
+-- @tparam table list A table used to store all TreeLine objects generated.
+-- @tparam string padding The string to use as padding for the current node.
+-- @tparam bool islast Set to true if node is the last children.
+-- @tparam bool isfirst Set to true if node is the first children.
+local function list_tree_rec(style, node, list, padding, islast, isfirst)
+    style = style or tree.get_style('bare', 0)
+    list = list or {}
+    padding = padding or ''
+
+    local lead_type
+
+    -- print(node.name, padding, islast, isfirst)
+
+    if     islast then
+        lead_type = node:select_lead('lst_key', 'lst_key_closed', 'lst_key_open')
+    elseif isfirst then
+        lead_type = node:select_lead('1st_level_1st_key', '1st_level_1st_key_closed', '1st_level_1st_key_open')
+    else
+        lead_type = node:select_lead('nth_key', 'nth_key_closed', 'nth_key_open')
+    end
+
+    table.insert(list, lg.TreeLine(node, padding, lead_type, style))
+
+    for k, child in ipairs(node:get_children()) do
+        local child_first = (k == 1)
+        local child_last = (k == #node:get_children())
+        local child_padding
+        if islast then
+            child_padding = padding .. style['empty']
+        else
+            child_padding = padding .. style['link']
+        end
+        list_tree_rec(style, child, list, child_padding, child_last, child_first)
+    end
+end
+
+--- Build a tree representation of the current node (node as root).
+-- @tparam string stylename The name of the string to be used. @see tree.get_style.
+-- @tparam int spacing The number of extra characters to add in the lead.
+-- @tparam bool hide_me Set to true to 'hide' the current node (i.e. only display its' children)
+-- @treturn table A list of TreeLine() objects.
+function lg.Node:list_tree(stylename, spacing, hide_me)
+    -- Returns the tree (current node as root) in a string.
+    stylename = stylename or 'bare'
+    spacing = spacing or 0
+    hide_me = hide_me or false
+
+    local style = tree.get_style(stylename, spacing)
+    local list = {}
+    local lead_type = nil
+    local padding = nil
+
+    if not hide_me then
+        lead_type = self:select_lead('root', 'root_closed', 'root_open')
+        table.insert(list, lg.TreeLine(self, '', lead_type, style))
+        padding = style['empty']
+    end
+
+    local children = self:get_children()
+    for k, child in ipairs(children) do
+        local isfirst = (k == 1)
+        local islast  = (k == #children)
+        list_tree_rec(style, child, list, padding, islast, isfirst)
     end
 
     return list
