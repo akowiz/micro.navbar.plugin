@@ -83,14 +83,14 @@ local function display_content(buf, language)
 
     local bytes = util.String(buf:Bytes())
     local struc
-    local ttree
+    local tl_list
 
     if     language == 'python' then
-        struc = lgp.export_structure(bytes)
-        ttree = lgp.tree_to_navbar(struc, ttype, tspace)
+        struc   = lgp.export_structure(bytes)
+        tl_list = lgp.tree_to_navbar(struc, ttype, tspace)
     elseif language == 'lua' then
-        struc = lgl.export_structure(bytes)
-        ttree = lgl.tree_to_navbar(struc, ttype, tspace)
+        struc   = lgl.export_structure(bytes)
+        tl_list = lgl.tree_to_navbar(struc, ttype, tspace)
     else
         struc = nil
     end
@@ -98,10 +98,10 @@ local function display_content(buf, language)
     local display_text = {}
 
     node_list = {}
-    for k, v in ipairs(ttree) do
-        display_text[#display_text+1] = v['text']
-        if v['node'] ~= nil then
-            node_list[#node_list+1] = v['node']
+    for _, tl in ipairs(tl_list) do
+        display_text[#display_text+1] = tostring(tl)
+        if tl.node ~= nil then
+            node_list[#node_list+1] = tl.node
         else
             node_list[#node_list+1] = false
         end
