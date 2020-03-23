@@ -212,7 +212,7 @@ end
 -- @tparam string padding The string to use as padding for the current node.
 -- @tparam bool islast Set to true if node is the last children.
 -- @tparam bool isfirst Set to true if node is the first children.
-local function list_tree_rec(style, node, list, padding, islast, isfirst)
+local function to_treelines_rec(style, node, list, padding, islast, isfirst)
     style = style or tree.get_style('bare', 0)
     list = list or {}
     padding = padding or ''
@@ -240,7 +240,7 @@ local function list_tree_rec(style, node, list, padding, islast, isfirst)
         else
             child_padding = padding .. style['link']
         end
-        list_tree_rec(style, child, list, child_padding, child_last, child_first)
+        to_treelines_rec(style, child, list, child_padding, child_last, child_first)
     end
 end
 
@@ -270,7 +270,7 @@ function tree.NodeBase:to_treelines(stylename, spacing, hide_me)
     for k, child in ipairs(children) do
         local isfirst = (k == 1)
         local islast  = (k == #children)
-        list_tree_rec(style, child, list, padding, islast, isfirst)
+        to_treelines_rec(style, child, list, padding, islast, isfirst)
     end
 
     return list
