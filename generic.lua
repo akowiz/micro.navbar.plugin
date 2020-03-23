@@ -64,6 +64,15 @@ function string:split(sep, max, regex)
    return record
 end
 
+--- Create a set from a list
+function gen.set(list)
+    local set = {}
+    for _, l in ipairs(list) do
+        set[l] = true
+    end
+    return set
+end
+
 --- Clone/Copy a table
 function gen.table_clone(tab)
   return { table.unpack(tab) }
