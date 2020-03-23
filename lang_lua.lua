@@ -109,7 +109,7 @@ function lgl.tree_to_navbar(node, stylename, spacing)
     stylename = stylename or 'bare'
     spacing = spacing or 0
 
-    local ttree
+    local tl_list
     local objects   = lgl.Node('Objects')
     local functions = lgl.Node('Functions')
     local variables = lgl.Node('Variables')
@@ -197,19 +197,19 @@ function lgl.tree_to_navbar(node, stylename, spacing)
 
     local empty_line = tree.TreeLine()
 
-    ttree = objects:list_tree(stylename, spacing)
-    table.insert(ttree, empty_line)
+    tl_list = objects:list_tree(stylename, spacing)
+    table.insert(tl_list, empty_line)
 
     for _, tl in ipairs(functions:list_tree(stylename, spacing)) do
-        table.insert(ttree, tl)
+        table.insert(tl_list, tl)
     end
-    table.insert(ttree, empty_line)
+    table.insert(tl_list, empty_line)
 
     for _, tl in ipairs(variables:list_tree(stylename, spacing)) do
-        table.insert(ttree, tl)
+        table.insert(tl_list, tl)
     end
 
-    return ttree
+    return tl_list
 end
 
 
