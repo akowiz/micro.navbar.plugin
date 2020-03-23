@@ -72,7 +72,7 @@ end
 -- @tparam string str The string (buffer content) to analyse.
 -- @treturn Node A tree (made of Nodes) representing the structure.
 function lgp.export_structure(str)
-    local root = lgp.Node('/')
+    local root = lgp.Node(tree.SEP)
 
     local parents = {}   -- table of parents indexed by indent
     local parent = nil

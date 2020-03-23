@@ -78,7 +78,7 @@ end
 -- @tparam string str The string (buffer content) to analyse.
 -- @treturn Node A tree (made of Nodes) representing the structure.
 function lgl.export_structure(str)
-    local root = lgl.Node('/')
+    local root = lgl.Node(tree.SEP)
 
     local parent = nil
     local object
