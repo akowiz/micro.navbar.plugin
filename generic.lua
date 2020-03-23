@@ -75,6 +75,9 @@ function gen.set(list)
     return set
 end
 
+--- Display a set as a string.
+-- @tparam table set The set to display.
+-- @treturn string A string containing all elements from the set.
 function gen.set_tostring(set)
     local tab = {}
     for k, _ in pairs(set) do
@@ -84,14 +87,14 @@ function gen.set_tostring(set)
 end
 
 --- Clone/Copy a list (table)
--- @tparam table table The list to clone.
+-- @tparam table list The list to clone.
 function gen.table_clone(list)
   return { table.unpack(list) }
 end
 
 --- Reverse a list (table).
 -- Note: modify in place.
--- @tparam table table The list to reverse.
+-- @tparam table list The list to reverse.
 function gen.table_reverse(list)
     local i, j = 1, #list
     while i < j do
@@ -102,7 +105,7 @@ function gen.table_reverse(list)
 end
 
 --- Return true if list == {}, false otherwise.
--- @tparam table table A table.
+-- @tparam table list A table.
 -- @return true if the table is {}, false otherwise.
 function gen.is_empty(list)
     return next(list) == nil
@@ -110,7 +113,7 @@ end
 
 --- Return true if val is present in list, false otherwise
 -- @param val A value.
--- @tparam table table A list.
+-- @tparam table list A list.
 -- @treturn bool true if val is present in list.
 function gen.is_in(val, list)
     for _, value in ipairs(list) do
