@@ -33,7 +33,7 @@ function string:contains(str)
     return true
 end
 
---- split function with a python semantic.
+--- Split function with a python semantic.
 --   see http://lua-users.org/wiki/SplitJoin
 -- @tparam string sep The character to use for the slit.
 -- @tparam int max The maximun number of split.
