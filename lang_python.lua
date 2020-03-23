@@ -117,45 +117,6 @@ function lgp.export_structure(str)
     return root
 end
 
---- Convert a tree (made of Nodes) into 3 trees (made of Nodes)
--- @tparam Node node The tree to convert.
--- @treturn table A list of {display_text, line}.
-function lgp.tree_to_navbar(node, stylename, spacing)
-    stylename = stylename or 'bare'
-    spacing = spacing or 0
-
-    local tl_list
-    local classes   = lgp.Node('Classes')
-    local functions = lgp.Node('Functions')
-    local variables = lgp.Node('Variables')
-
-    for k, v in ipairs(node:get_children()) do
-        if v.kind == lg.T_CLASS then
-            classes:append(v)
-        elseif v.kind == lg.T_FUNCTION then
-            functions:append(v)
-        elseif v.kind == lg.T_VARIABLE then
-            variables:append(v)
-        end
-    end
-
-    local empty_line = tree.TreeLine()
-
-    tl_list = classes:to_treelines(stylename, spacing)
-    table.insert(tl_list, empty_line)
-
-    for _, tl in ipairs(functions:to_treelines(stylename, spacing)) do
-        table.insert(tl_list, tl)
-    end
-    table.insert(tl_list, empty_line)
-
-    for _, tl in ipairs(variables:to_treelines(stylename, spacing)) do
-        table.insert(tl_list, tl)
-    end
-
-    return tl_list
-end
-
 
 -------------------------------------------------------------------------------
 -- Data Structures
@@ -181,6 +142,45 @@ end
 function lgp.Node:__repr()
     -- Allow us to display the nodes in a readable way.
     return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent}, ', ') .. ')'
+end
+
+--- Convert a tree (made of Nodes) into 3 trees (made of Nodes)
+-- @tparam Node node The tree to convert.
+-- @treturn table A list of {display_text, line}.
+function lgp.Node:to_navbar(stylename, spacing)
+    stylename = stylename or 'bare'
+    spacing = spacing or 0
+
+    local tl_list
+    local classes   = lgp.Node('Classes')
+    local functions = lgp.Node('Functions')
+    local variables = lgp.Node('Variables')
+
+    for k, v in ipairs(self:get_children()) do
+        if v.kind == lg.T_CLASS then
+            classes:append(v)
+        elseif v.kind == lg.T_FUNCTION then
+            functions:append(v)
+        elseif v.kind == lg.T_VARIABLE then
+            variables:append(v)
+        end
+    end
+
+    local empty_line = tree.TreeLine()
+
+    tl_list = classes:to_treelines(stylename, spacing)
+    table.insert(tl_list, empty_line)
+
+    for _, tl in ipairs(functions:to_treelines(stylename, spacing)) do
+        table.insert(tl_list, tl)
+    end
+    table.insert(tl_list, empty_line)
+
+    for _, tl in ipairs(variables:to_treelines(stylename, spacing)) do
+        table.insert(tl_list, tl)
+    end
+
+    return tl_list
 end
 
 

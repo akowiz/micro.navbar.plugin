@@ -102,10 +102,28 @@ function lgl.export_structure(str)
     return root
 end
 
+
+-------------------------------------------------------------------------------
+-- Data Structures
+-------------------------------------------------------------------------------
+
+--- Node inherit from tree.NodeSimple.
+-- @type Node
+lgl.Node = gen.class(lg.Node)
+
+--- Initialize Node
+-- @tparam string name The name of the python object.
+-- @tparam int kind The kind of object (T_NONE, T_CLASS, etc.)
+-- @tparam int indent The level of indentation of the python code.
+-- @tparam int line The line from the buffer where we can see this item.
+function lgl.Node:__init(name, kind, line)
+    lg.Node.__init(self, name, kind, line)
+end
+
 --- Convert a tree (made of Nodes) into 3 trees (made of Nodes)
 -- @tparam Node node The tree to convert.
 -- @treturn table A list of {display_text, line}.
-function lgl.tree_to_navbar(node, stylename, spacing)
+function lgl.Node:to_navbar(stylename, spacing)
     stylename = stylename or 'bare'
     spacing = spacing or 0
 
@@ -114,7 +132,7 @@ function lgl.tree_to_navbar(node, stylename, spacing)
     local functions = lgl.Node('Functions')
     local variables = lgl.Node('Variables')
 
-    local children = node:get_children()
+    local children = self:get_children()
     table.sort(children)
 
     for k, v in ipairs(children) do
@@ -212,23 +230,6 @@ function lgl.tree_to_navbar(node, stylename, spacing)
     return tl_list
 end
 
-
--------------------------------------------------------------------------------
--- Data Structures
--------------------------------------------------------------------------------
-
---- Node inherit from tree.NodeSimple.
--- @type Node
-lgl.Node = gen.class(lg.Node)
-
---- Initialize Node
--- @tparam string name The name of the python object.
--- @tparam int kind The kind of object (T_NONE, T_CLASS, etc.)
--- @tparam int indent The level of indentation of the python code.
--- @tparam int line The line from the buffer where we can see this item.
-function lgl.Node:__init(name, kind, line)
-    lg.Node.__init(self, name, kind, line)
-end
 
 -------------------------------------------------------------------------------
 -- Module
