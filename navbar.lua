@@ -6,15 +6,16 @@ if not string.find(package.path, "navbar") then
 end
 
 
-local micro = import("micro")
+local micro  = import("micro")
 local config = import("micro/config")
-local util = import("micro/util")
+local util   = import("micro/util")
 local buffer = import("micro/buffer")
 
 
 local gen = require('generic')
 local lgp = require('lang_python')
 local lgl = require('lang_lua')
+local gen = require('generic')
 
 local DISPLAY_NAME = 'navbar'
 local SIZE_MIN = 15
@@ -24,6 +25,7 @@ local SIZE_MIN = 15
 local main_view = nil -- The original panel
 local tree_view = nil -- The navbar panel
 local node_list = nil
+local closed = gen.set({'Classes/Foo', 'Classes/Bar', 'Functions', 'Variables'})
 
 -- Holds the views for the multiple panes we are manipulating
 local tree_views = {}
@@ -76,12 +78,12 @@ local function clear_messenger()
     -- messenger:Clear()
 end
 
-local function display_content(buf, language)
+local function display_content(language)
     local ret = {}
     local ttype  = get_option_among_list("navbar.treestyle", {'bare', 'ascii', 'box'})
     local tspace = get_option_among_range("navbar.treestyle_spacing", 0, nil)
 
-    local bytes = util.String(buf:Bytes())
+    local bytes = util.String(main_view.Buf:Bytes())
     local root
     local tl_list = {}
     local display_text = {}
@@ -93,7 +95,7 @@ local function display_content(buf, language)
     end
 
     if root then
-        tl_list = root:to_navbar(ttype, tspace)
+        tl_list = root:to_navbar(ttype, tspace, closed)
     end
 
     node_list = {}
@@ -115,18 +117,18 @@ local function refresh_view(buf)
     -- Delete everything
     tree_view.Buf.EventHandler:Remove(tree_view.Buf:Start(), tree_view.Buf:End())
 
-    local ft = buf:FileType()
-    local fn = buf:GetName()
+    local ft = main_view.Buf:FileType()
+    local fn = main_view.Buf:GetName()
     local content = ''
 
     tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), 'Symbols\n\n')
 
     -- There seems to be a bug in micro FileType automatic recognition.
     if     (ft == 'python') or ((ft == '') and (fn:ends_with('.py'))) then
-        content = display_content(buf, 'python')
+        content = display_content('python')
 
     elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
-        content = display_content(buf, 'lua')
+        content = display_content('lua')
 
     else
         micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
@@ -306,9 +308,12 @@ function nvb_node_open()
         tree_line = tree_view.Cursor.Loc.Y - 1
         node = node_list[tree_line]
 
-        if node ~= false and node:is_closed() then
-            node.closed = true
-            refresh_view()
+        if node ~= false then
+            local abs_label = node:get_abs_label()
+            if closed[abs_label] then
+                closed[abs_label] = nil
+                refresh_view()
+            end
         end
     end
 end
@@ -321,9 +326,12 @@ function nvb_node_close()
         tree_line = tree_view.Cursor.Loc.Y - 1
         node = node_list[tree_line]
 
-        if node ~= false and not node:is_closed() then
-            node.closed = false
-            refresh_view()
+        if node ~= false then
+            local abs_label = node:get_abs_label()
+            if not closed[abs_label] then
+                closed[abs_label] = true
+                refresh_view()
+            end
         end
     end
 end
