@@ -331,6 +331,15 @@ function tree.NodeBase:to_treelines(stylename, spacing, hide_me)
     return list
 end
 
+--- Convert a tree (made of Nodes) into a list of TreeLine (used to display our navbar).
+-- @tparam Node tree The tree to convert.
+-- @treturn table A list of TreeLine.
+function tree.NodeBase:to_navbar(stylename, spacing)
+    stylename = stylename or 'bare'
+    spacing = spacing or 0
+    local tl_list = self:to_treelines(stylename, spacing)
+    return tl_list
+end
 
 
 --- NodeSimple inherit from NodeBase

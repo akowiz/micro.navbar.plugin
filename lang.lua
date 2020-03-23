@@ -44,18 +44,6 @@ function lg.kind_to_str(kind)
     return ret
 end
 
---- Convert a tree (made of Nodes) into a list of TreeLine (used to display our navbar).
--- @tparam Node tree The tree to convert.
--- @treturn table A list of TreeLine.
-function lg.tree_to_navbar(tree, stylename, spacing)
-    stylename = stylename or 'bare'
-    spacing = spacing or 0
-
-    local tl_list = tree:to_treelines(stylename, spacing)
-
-    return tl_list
-end
-
 
 -------------------------------------------------------------------------------
 -- Data Structures
