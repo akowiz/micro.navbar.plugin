@@ -103,9 +103,9 @@ function lgl.export_structure(str)
 end
 
 --- Convert a tree (made of Nodes) into 3 trees (made of Nodes)
--- @tparam Node tree The tree to convert.
+-- @tparam Node node The tree to convert.
 -- @treturn table A list of {display_text, line}.
-function lgl.tree_to_navbar(tree, stylename, spacing)
+function lgl.tree_to_navbar(node, stylename, spacing)
     stylename = stylename or 'bare'
     spacing = spacing or 0
 
@@ -114,7 +114,7 @@ function lgl.tree_to_navbar(tree, stylename, spacing)
     local functions = lgl.Node('Functions')
     local variables = lgl.Node('Variables')
 
-    local children = tree:get_children()
+    local children = node:get_children()
     table.sort(children)
 
     for k, v in ipairs(children) do
@@ -195,7 +195,7 @@ function lgl.tree_to_navbar(tree, stylename, spacing)
         end
     end
 
-    local empty_line = lg.TreeLine()
+    local empty_line = tree.TreeLine()
 
     ttree = objects:list_tree(stylename, spacing)
     table.insert(ttree, empty_line)

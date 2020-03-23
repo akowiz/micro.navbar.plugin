@@ -291,6 +291,49 @@ function tree.NodeSimple:get_child_named(name)
 end
 
 
+--- An item used to build a text tree line by line.
+-- @type TreeLine
+tree.TreeLine = gen.class()
+
+--- Initialize Node
+-- @tparam string name The name of the python object.
+-- @tparam int kind The kind of object (T_NONE, T_CLASS, etc.)
+-- @tparam int indent The level of indentation of the python code.
+-- @tparam int line The line from the buffer where we can see this item.
+-- @tparam bool closed Whether this node should be closed or not (i.e. whether children will be visible or not).
+function tree.TreeLine:__init(node, padding, lead_type, style)
+    self.node = node or nil
+    self.padding = padding or ''
+    self.lead_type = lead_type or nil
+    self.style = style or tree.get_style('bare', 0)
+end
+
+--- Return a representation of the tree line.
+-- @treturn string TreeLine(padding, lead_type, label).
+function tree.TreeLine:__repr()
+    local label = 'nil'
+    if self.node ~= nil then
+        label = self.node:get_label()
+    end
+    local lead = tostring(self.lead_type)
+    return 'TreeLine(' .. table.concat({label, self.padding, lead}, ', ') .. ')'
+end
+
+--- Return the actual string of the TreeLine, ready to be displayed.
+-- @treturn string The tree line.
+function tree.TreeLine:__tostring()
+    local label = ''
+    if self.node ~= nil then
+        label = self.node:get_label()
+    end
+    local lead = ''
+    if self.lead_type ~= nil then
+        lead = self.style[self.lead_type]
+    end
+    return self.padding .. lead .. label
+end
+
+
 -------------------------------------------------------------------------------
 -- Module
 -------------------------------------------------------------------------------

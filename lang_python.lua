@@ -118,9 +118,9 @@ function lgp.export_structure(str)
 end
 
 --- Convert a tree (made of Nodes) into 3 trees (made of Nodes)
--- @tparam Node tree The tree to convert.
+-- @tparam Node node The tree to convert.
 -- @treturn table A list of {display_text, line}.
-function lgp.tree_to_navbar(tree, stylename, spacing)
+function lgp.tree_to_navbar(node, stylename, spacing)
     stylename = stylename or 'bare'
     spacing = spacing or 0
 
@@ -129,7 +129,7 @@ function lgp.tree_to_navbar(tree, stylename, spacing)
     local functions = lgp.Node('Functions')
     local variables = lgp.Node('Variables')
 
-    for k, v in ipairs(tree:get_children()) do
+    for k, v in ipairs(node:get_children()) do
         if v.kind == lg.T_CLASS then
             classes:append(v)
         elseif v.kind == lg.T_FUNCTION then
@@ -139,7 +139,7 @@ function lgp.tree_to_navbar(tree, stylename, spacing)
         end
     end
 
-    local empty_line = lg.TreeLine()
+    local empty_line = tree.TreeLine()
 
     ttree = classes:list_tree(stylename, spacing)
     table.insert(ttree, empty_line)
