@@ -24,6 +24,7 @@ local SIZE_MIN = 15
 -- Holds the micro.CurPane() we're manipulating
 local main_view = nil -- The original panel
 local tree_view = nil -- The navbar panel
+local root_tree = nil
 local node_list = nil
 local closed = {}     -- Set of nodes that should be closed on display.
 
@@ -78,24 +79,39 @@ local function clear_messenger()
     -- messenger:Clear()
 end
 
-local function display_content(language)
-    local ret = {}
+local function refresh_structure()
+    local ft = main_view.Buf:FileType()
+    local fn = main_view.Buf:GetName()
+    local language
+
+    if     (ft == 'python') or ((ft == '') and (fn:ends_with('.py'))) then
+        language = 'python'
+    elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
+        language = 'lua'
+    else
+        micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
+    end
+
+    local bytes = util.String(main_view.Buf:Bytes())
+
+    if     language == 'python' then
+        root_tree = lgp.export_structure(bytes)
+    elseif language == 'lua' then
+        root_tree = lgl.export_structure(bytes)
+    else
+        root_tree = nil
+    end
+end
+
+local function display_content()
     local ttype  = get_option_among_list("navbar.treestyle", {'bare', 'ascii', 'box'})
     local tspace = get_option_among_range("navbar.treestyle_spacing", 0, nil)
 
-    local bytes = util.String(main_view.Buf:Bytes())
-    local root
     local tl_list = {}
     local display_text = {}
 
-    if     language == 'python' then
-        root = lgp.export_structure(bytes)
-    elseif language == 'lua' then
-        root = lgl.export_structure(bytes)
-    end
-
-    if root then
-        tl_list = root:to_navbar(ttype, tspace, closed)
+    if root_tree then
+        tl_list = root_tree:to_navbar(ttype, tspace, closed)
     end
 
     node_list = {}
@@ -108,32 +124,20 @@ local function display_content(language)
         end
     end
 
-    return table.concat(display_text, '\n')
+    local ret = table.concat(display_text, '\n')
+    return ret
 end
 
 local function refresh_view(buf)
     clear_messenger()
 
-    -- Delete everything
+    local content = display_content()
+
+    -- delete everything in the tree_view
     tree_view.Buf.EventHandler:Remove(tree_view.Buf:Start(), tree_view.Buf:End())
 
-    local ft = main_view.Buf:FileType()
-    local fn = main_view.Buf:GetName()
-    local content = ''
-
+    -- display a new tree_view
     tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), 'Symbols\n\n')
-
-    -- There seems to be a bug in micro FileType automatic recognition.
-    if     (ft == 'python') or ((ft == '') and (fn:ends_with('.py'))) then
-        content = display_content('python')
-
-    elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
-        content = display_content('lua')
-
-    else
-        micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
-    end
-
     tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
     tree_view:Tab():Resize()
 end
@@ -362,6 +366,7 @@ local function open_tree()
     tree_view.Buf:SetOptionNative("scrollbar", false)
 
     -- Display the content
+    refresh_structure()
     refresh_view(main_view.Buf)
 
     -- Move the cursor
@@ -435,7 +440,7 @@ end
 -- @treturn bool false
 function onSave(bp)
     if tree_view ~= nil then
-        refresh_view(bp.Buf)
+        refresh_structure()
     end
     return false
 end
