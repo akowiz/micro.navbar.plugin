@@ -10,6 +10,7 @@ local tree = {}
 
 local gen  = require('generic')
 
+
 tree.SEP = '/'
 local DEBUG = false
 
@@ -28,52 +29,52 @@ function tree.get_style(stylename, spacing)
 
     ret = {}
     if     stylename == 'bare' then
-        ret['root']         = '.'..string.rep('', spacing)..' '
-        ret['root_open']    = 'v'..string.rep('', spacing)..' '
-        ret['root_closed']  = '>'..string.rep('', spacing)..' '
-        ret['1st_level_1st_key']        = '.'..string.rep(' ', spacing)..' '
-        ret['1st_level_1st_key_open']   = 'v'..string.rep(' ', spacing)..' '
-        ret['1st_level_1st_key_closed'] = '>'..string.rep(' ', spacing)..' '
-        ret['nth_key']        = '.'..string.rep(' ', spacing)..' '
-        ret['nth_key_open']   = 'v'..string.rep(' ', spacing)..' '
-        ret['nth_key_closed'] = '>'..string.rep(' ', spacing)..' '
-        ret['lst_key']        = '.'..string.rep(' ', spacing)..' '
-        ret['lst_key_open']   = 'v'..string.rep(' ', spacing)..' '
-        ret['lst_key_closed'] = '>'..string.rep(' ', spacing)..' '
-        ret['empty'] = ' '..string.rep(' ', spacing)..' '
-        ret['link']  = ' '..string.rep(' ', spacing)..' '
+        ret['root_d']   = '.'..string.rep('', spacing)..' '     -- root default
+        ret['root_o']   = 'v'..string.rep('', spacing)..' '     -- root open
+        ret['root_c']   = '>'..string.rep('', spacing)..' '     -- root closed
+        ret['1st_d']    = '.'..string.rep(' ', spacing)..' '    -- 1st child default
+        ret['1st_o']    = 'v'..string.rep(' ', spacing)..' '    -- 1st child open
+        ret['1st_c']    = '>'..string.rep(' ', spacing)..' '    -- 1st child closed
+        ret['nth_d']    = '.'..string.rep(' ', spacing)..' '    -- Nth child default
+        ret['nth_o']    = 'v'..string.rep(' ', spacing)..' '    -- Nth child open
+        ret['nth_c']    = '>'..string.rep(' ', spacing)..' '    -- Nth child closed
+        ret['lst_d']    = '.'..string.rep(' ', spacing)..' '    -- last child default
+        ret['lst_o']    = 'v'..string.rep(' ', spacing)..' '    -- last child open
+        ret['lst_c']    = '>'..string.rep(' ', spacing)..' '    -- last child closed
+        ret['empty']    = ' '..string.rep(' ', spacing)..' '    -- empty padding
+        ret['link']     = ' '..string.rep(' ', spacing)..' '    -- padding with a vertical bar
 
     elseif stylename == 'ascii' then
-        ret['root']         = '.'..string.rep('', spacing)..' '
-        ret['root_open']    = '-'..string.rep('', spacing)..' '
-        ret['root_closed']  = '+'..string.rep('', spacing)..' '
-        ret['1st_level_1st_key']        = '.'..string.rep(' ', spacing)..' '
-        ret['1st_level_1st_key_open']   = '-'..string.rep(' ', spacing)..' '
-        ret['1st_level_1st_key_closed'] = '+'..string.rep(' ', spacing)..' '
-        ret['nth_key']        = '.'..string.rep(' ', spacing)..' '
-        ret['nth_key_open']   = '-'..string.rep(' ', spacing)..' '
-        ret['nth_key_closed'] = '+'..string.rep(' ', spacing)..' '
-        ret['lst_key']        = 'L'..string.rep(' ', spacing)..' '
-        ret['lst_key_open']   = '-'..string.rep(' ', spacing)..' '
-        ret['lst_key_closed'] = '+'..string.rep(' ', spacing)..' '
-        ret['empty'] = ' '..string.rep(' ', spacing)..' '
-        ret['link']  = '|'..string.rep(' ', spacing)..' '
+        ret['root_d']   = '.'..string.rep('', spacing)..' '
+        ret['root_o']   = '-'..string.rep('', spacing)..' '
+        ret['root_c']   = '+'..string.rep('', spacing)..' '
+        ret['1st_d']    = '.'..string.rep(' ', spacing)..' '
+        ret['1st_o']    = '-'..string.rep(' ', spacing)..' '
+        ret['1st_c']    = '+'..string.rep(' ', spacing)..' '
+        ret['nth_d']    = '.'..string.rep(' ', spacing)..' '
+        ret['nth_o']    = '-'..string.rep(' ', spacing)..' '
+        ret['nth_c']    = '+'..string.rep(' ', spacing)..' '
+        ret['lst_d']    = 'L'..string.rep(' ', spacing)..' '
+        ret['lst_o']    = '-'..string.rep(' ', spacing)..' '
+        ret['lst_c']    = '+'..string.rep(' ', spacing)..' '
+        ret['empty']    = ' '..string.rep(' ', spacing)..' '
+        ret['link']     = '|'..string.rep(' ', spacing)..' '
 
     elseif stylename == 'box' then
-        ret['root']         = '.'..string.rep('', spacing)..' '
-        ret['root_open']    = '▾'..string.rep('', spacing)..' '
-        ret['root_closed']  = '▸'..string.rep('', spacing)..' '
-        ret['1st_level_1st_key']        = '├'..string.rep('─', spacing)..' '
-        ret['1st_level_1st_key_open']   = '├'..string.rep('─', spacing)..' '
-        ret['1st_level_1st_key_closed'] = '╞'..string.rep('═', spacing)..' '
-        ret['nth_key']        = '├'..string.rep('─', spacing)..' '
-        ret['nth_key_open']   = '├'..string.rep('─', spacing)..' '
-        ret['nth_key_closed'] = '╞'..string.rep('═', spacing)..' '
-        ret['lst_key']        = '└'..string.rep('─', spacing)..' '
-        ret['lst_key_open']   = '└'..string.rep('─', spacing)..' '
-        ret['lst_key_closed'] = '╘'..string.rep('═', spacing)..' '
-        ret['empty'] = ' '..string.rep(' ', spacing)..' '
-        ret['link']  = '│'..string.rep(' ', spacing)..' '
+        ret['root_d']   = '.'..string.rep('', spacing)..' '
+        ret['root_o']   = '▾'..string.rep('', spacing)..' '
+        ret['root_c']   = '▸'..string.rep('', spacing)..' '
+        ret['1st_d']    = '├'..string.rep('─', spacing)..' '
+        ret['1st_o']    = '├'..string.rep('─', spacing)..' '
+        ret['1st_c']    = '╞'..string.rep('═', spacing)..' '
+        ret['nth_d']    = '├'..string.rep('─', spacing)..' '
+        ret['nth_o']    = '├'..string.rep('─', spacing)..' '
+        ret['nth_c']    = '╞'..string.rep('═', spacing)..' '
+        ret['lst_d']    = '└'..string.rep('─', spacing)..' '
+        ret['lst_o']    = '└'..string.rep('─', spacing)..' '
+        ret['lst_c']    = '╘'..string.rep('═', spacing)..' '
+        ret['empty']    = ' '..string.rep(' ', spacing)..' '
+        ret['link']     = '│'..string.rep(' ', spacing)..' '
 
     end
     return ret
@@ -250,11 +251,11 @@ local function to_treelines_rec(style, node, list, padding, islast, isfirst, clo
     -- print(node.name, padding, islast, isfirst)
 
     if     islast then
-        lead_type = node:select_lead('lst_key', 'lst_key_open', 'lst_key_closed', closed)
+        lead_type = node:select_lead('lst_d', 'lst_o', 'lst_c', closed)
     elseif isfirst then
-        lead_type = node:select_lead('1st_level_1st_key', '1st_level_1st_key_open', '1st_level_1st_key_closed', closed)
+        lead_type = node:select_lead('1st_d', '1st_o', '1st_c', closed)
     else
-        lead_type = node:select_lead('nth_key', 'nth_key_open', 'nth_key_closed', closed)
+        lead_type = node:select_lead('nth_d', 'nth_o', 'nth_c', closed)
     end
 
     table.insert(list, tree.TreeLine(node, padding, lead_type, style))
@@ -293,7 +294,7 @@ function tree.NodeBase:to_treelines(stylename, spacing, hide_me, closed)
     local padding = nil
 
     if not hide_me then
-        lead_type = self:select_lead('root', 'root_open', 'root_closed', closed)
+        lead_type = self:select_lead('root_d', 'root_o', 'root_c', closed)
         table.insert(list, tree.TreeLine(self, '', lead_type, style))
         padding = style['empty']
     end
