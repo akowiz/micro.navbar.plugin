@@ -129,13 +129,6 @@ function tree.NodeBase:append(child)
     table.insert(children, child)
 end
 
---- Return true if the node is closed.
--- Should be overriden in the class that inherit Node.
--- @treturn bool true if the current node it closed.
-function tree.NodeBase:is_closed()
-    return false
-end
-
 --- Return a table of children from the current node.
 -- Should be overriden in the class that inherit Node.
 -- @treturn table A table of the children from the current node.
@@ -166,17 +159,13 @@ end
 --- Select the lead characters for a node depending on the node's configuration.
 -- The lead characters are displayed in from of the node's label in the tree.
 -- @tparam string default Lead characters to be used if the node has no children.
--- @tparam string closed Lead characters to be used if the node has children and is closed.
--- @tparam string open Lead characters to be used if the node has children and is open.
+-- @tparam string open Lead characters to be used if the node has children and is 'open'.
 -- @treturn string The lead characters to be used.
-function tree.NodeBase:select_lead(default, closed, open)
+function tree.NodeBase:select_lead(default, open)
     local lead = default
     local children = self:get_children()
     if not gen.is_empty(children) then
         lead = open
-        if self:is_closed() then
-            lead = closed
-        end
     end
     return lead
 end
@@ -212,31 +201,26 @@ local function tree_rec(style, node, tree, padding, islast, isfirst)
 
     if     islast then
         lead = node:select_lead(style['lst_key'],
-                                style['lst_key_closed'],
                                 style['lst_key_open'])
     elseif isfirst then
         lead = node:select_lead(style['1st_level_1st_key'],
-                                style['1st_level_1st_key_closed'],
                                 style['1st_level_1st_key_open'])
     else
         lead = node:select_lead(style['nth_key'],
-                                style['nth_key_closed'],
                                 style['nth_key_open'])
     end
     table.insert(tree, padding .. lead .. node:get_label())
 
-    if not node:is_closed() then
-        for k, child in ipairs(node:get_children()) do
-            local child_first = (k == 1)
-            local child_last = (k == #node:get_children())
-            local child_padding
-            if islast then
-                child_padding = padding .. style['empty']
-            else
-                child_padding = padding .. style['link']
-            end
-            tree_rec(style, child, tree, child_padding, child_last, child_first)
+    for k, child in ipairs(node:get_children()) do
+        local child_first = (k == 1)
+        local child_last = (k == #node:get_children())
+        local child_padding
+        if islast then
+            child_padding = padding .. style['empty']
+        else
+            child_padding = padding .. style['link']
         end
+        tree_rec(style, child, tree, child_padding, child_last, child_first)
     end
 end
 
@@ -260,18 +244,15 @@ function tree.NodeBase:tree(stylename, spacing, hide_me)
         padding = style['empty']
 
         lead = self:select_lead(style['root'],
-                                style['root_closed'],
                                 style['root_open'])
         table.insert(tree, lead .. self:get_label())
     end
 
-    if not self:is_closed() then
-        local children = self:get_children()
-        for k, child in ipairs(children) do
-            local isfirst = (k == 1)
-            local islast  = (k == #children)
-            tree_rec(style, child, tree, padding, islast, isfirst)
-        end
+    local children = self:get_children()
+    for k, child in ipairs(children) do
+        local isfirst = (k == 1)
+        local islast  = (k == #children)
+        tree_rec(style, child, tree, padding, islast, isfirst)
     end
 
     return table.concat(tree, '\n')
@@ -287,19 +268,12 @@ tree.NodeSimple = gen.class(tree.NodeBase)
 function tree.NodeSimple:__init(name, closed)
     tree.NodeBase.__init(self)
     self.name = name or ''
-    self.closed = closed or false
 end
 
 --- Retrieve the label of the node.
 -- @treturn string The label of the node.
 function tree.NodeSimple:get_label()
     return tostring(self.name)
-end
-
---- Retrieve the status of the node.
--- @treturn bool true if the node is 'closed'.
-function tree.NodeSimple:is_closed()
-    return self.closed
 end
 
 --- Check if the node has a child named name

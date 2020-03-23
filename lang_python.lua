@@ -170,9 +170,8 @@ lgp.Node = gen.class(lg.Node)
 -- @tparam int kind The kind of object (T_NONE, T_CLASS, etc.)
 -- @tparam int indent The level of indentation of the python code.
 -- @tparam int line The line from the buffer where we can see this item.
--- @tparam bool closed Whether this node should be closed or not (i.e. whether children will be visible or not).
-function lgp.Node:__init(name, kind, indent, line, closed)
-    lg.Node.__init(self, name, kind, line, closed)
+function lgp.Node:__init(name, kind, indent, line)
+    lg.Node.__init(self, name, kind, line)
     self.indent = indent or 0
 end
 

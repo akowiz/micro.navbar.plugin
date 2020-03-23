@@ -114,8 +114,8 @@ lg.Node = gen.class(tree.NodeSimple)
 -- @tparam int indent The level of indentation of the python code.
 -- @tparam int line The line from the buffer where we can see this item.
 -- @tparam bool closed Whether this node should be closed or not (i.e. whether children will be visible or not).
-function lg.Node:__init(name, kind, line, closed)
-    tree.NodeSimple.__init(self, name, closed)
+function lg.Node:__init(name, kind, line)
+    tree.NodeSimple.__init(self, name)
     self.kind = kind or lg.T_NONE
     self.line = line or -1
 end
@@ -168,15 +168,12 @@ local function list_rec(style, node, list, padding, islast, isfirst)
 
     if     islast then
         lead = node:select_lead(style['lst_key'],
-                                style['lst_key_closed'],
                                 style['lst_key_open'])
     elseif isfirst then
         lead = node:select_lead(style['1st_level_1st_key'],
-                                style['1st_level_1st_key_closed'],
                                 style['1st_level_1st_key_open'])
     else
         lead = node:select_lead(style['nth_key'],
-                                style['nth_key_closed'],
                                 style['nth_key_open'])
     end
 
@@ -185,18 +182,16 @@ local function list_rec(style, node, list, padding, islast, isfirst)
         node = node,
     })
 
-    if not node:is_closed() then
-        for k, child in ipairs(node:get_children()) do
-            local child_first = (k == 1)
-            local child_last = (k == #node:get_children())
-            local child_padding
-            if islast then
-                child_padding = padding .. style['empty']
-            else
-                child_padding = padding .. style['link']
-            end
-            list_rec(style, child, list, child_padding, child_last, child_first)
+    for k, child in ipairs(node:get_children()) do
+        local child_first = (k == 1)
+        local child_last = (k == #node:get_children())
+        local child_padding
+        if islast then
+            child_padding = padding .. style['empty']
+        else
+            child_padding = padding .. style['link']
         end
+        list_rec(style, child, list, child_padding, child_last, child_first)
     end
 end
 
@@ -220,7 +215,6 @@ function lg.Node:list(stylename, spacing, hide_me)
         padding = style['empty']
 
         lead = self:select_lead(style['root'],
-                                style['root_closed'],
                                 style['root_open'])
         table.insert(list, {
             text = lead .. self:get_label(),
@@ -228,13 +222,11 @@ function lg.Node:list(stylename, spacing, hide_me)
         })
     end
 
-    if not self:is_closed() then
-        local children = self:get_children()
-        for k, child in ipairs(children) do
-            local isfirst = (k == 1)
-            local islast  = (k == #children)
-            list_rec(style, child, list, padding, islast, isfirst)
-        end
+    local children = self:get_children()
+    for k, child in ipairs(children) do
+        local isfirst = (k == 1)
+        local islast  = (k == #children)
+        list_rec(style, child, list, padding, islast, isfirst)
     end
 
     return list
@@ -260,11 +252,11 @@ local function list_tree_rec(style, node, list, padding, islast, isfirst)
     -- print(node.name, padding, islast, isfirst)
 
     if     islast then
-        lead_type = node:select_lead('lst_key', 'lst_key_closed', 'lst_key_open')
+        lead_type = node:select_lead('lst_key', 'lst_key_open')
     elseif isfirst then
-        lead_type = node:select_lead('1st_level_1st_key', '1st_level_1st_key_closed', '1st_level_1st_key_open')
+        lead_type = node:select_lead('1st_level_1st_key', '1st_level_1st_key_open')
     else
-        lead_type = node:select_lead('nth_key', 'nth_key_closed', 'nth_key_open')
+        lead_type = node:select_lead('nth_key', 'nth_key_open')
     end
 
     table.insert(list, lg.TreeLine(node, padding, lead_type, style))
@@ -299,7 +291,7 @@ function lg.Node:list_tree(stylename, spacing, hide_me)
     local padding = nil
 
     if not hide_me then
-        lead_type = self:select_lead('root', 'root_closed', 'root_open')
+        lead_type = self:select_lead('root', 'root_open')
         table.insert(list, lg.TreeLine(self, '', lead_type, style))
         padding = style['empty']
     end
