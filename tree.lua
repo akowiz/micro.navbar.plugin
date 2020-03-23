@@ -10,7 +10,7 @@ local tree = {}
 
 local gen  = require('generic')
 
-
+tree.SEP = '/'
 local DEBUG = false
 
 -------------------------------------------------------------------------------
@@ -142,6 +142,24 @@ end
 function tree.NodeBase:get_label()
     -- Default label will be the address of the object.
     return tostring(self)
+end
+
+function tree.NodeBase:get_abs_label()
+    local parents = {}
+
+    local current = self
+    local parent  = current:get_parent()
+
+    parents[#parents+1] = current:get_label()
+
+    while parent ~=  nil do
+        current = parent
+        parent  = current:get_parent()
+        parents[#parents+1] = current:get_label()
+    end
+    gen.table_reverse(parents)
+
+    return table.concat(parents, tree.SEP)
 end
 
 --- Return the parent of the current node.
