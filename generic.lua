@@ -75,6 +75,14 @@ function gen.set(list)
     return set
 end
 
+function gen.set_tostring(set)
+    local tab = {}
+    for k, _ in pairs(set) do
+        tab[#tab+1] = k
+    end
+    return table.concat(tab, ', ')
+end
+
 --- Clone/Copy a list (table)
 -- @tparam table table The list to clone.
 function gen.table_clone(list)
