@@ -230,32 +230,20 @@ end
 -- @tparam bool hide_me Set to true to 'hide' the current node (i.e. only display its' children)
 -- @treturn string The tree in a string format.
 function tree.NodeBase:tree(stylename, spacing, hide_me)
-    -- Returns the tree (current node as root) in a string.
     stylename = stylename or 'bare'
     spacing = spacing or 0
     hide_me = hide_me or false
 
-    local style = tree.get_style(stylename, spacing)
-    local tree = {}
-    local lead = nil
-    local padding = nil
+    local tl_list = self:to_treelines(stylename, spacing, hide_me)
+    local str_list = {}
+    local ret
 
-    if not hide_me then
-        padding = style['empty']
-
-        lead = self:select_lead(style['root'],
-                                style['root_open'])
-        table.insert(tree, lead .. self:get_label())
+    for _, tl in ipairs(tl_list) do
+        str_list[#str_list+1] = tostring(tl)
     end
 
-    local children = self:get_children()
-    for k, child in ipairs(children) do
-        local isfirst = (k == 1)
-        local islast  = (k == #children)
-        tree_rec(style, child, tree, padding, islast, isfirst)
-    end
-
-    return table.concat(tree, '\n')
+    ret = table.concat(str_list, '\n')
+    return ret
 end
 
 
