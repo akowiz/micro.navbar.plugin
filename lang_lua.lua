@@ -1,4 +1,4 @@
---- @module navbar.lang_python
+--- @module navbar.lang_lua
 
 local nvb_path = "navbar/?.lua;"
 if not string.find(package.path, nvb_path) then
