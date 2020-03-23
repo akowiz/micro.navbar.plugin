@@ -67,7 +67,6 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 BUGS
 ----
-- We should not show the window if the content of the buffer is not supported.
 - When several tabs are open, opening navbar change the name of the tab. If several navbar are running, more sidebar are open, it gets messy quickly.
 - Error if micro is not run from the development folder (this is a big issue) because extra modules (generic, etc.) can not be found.
 
