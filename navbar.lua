@@ -82,20 +82,19 @@ local function display_content(buf, language)
     local tspace = get_option_among_range("navbar.treestyle_spacing", 0, nil)
 
     local bytes = util.String(buf:Bytes())
-    local struc
-    local tl_list
+    local root
+    local tl_list = {}
+    local display_text = {}
 
     if     language == 'python' then
-        struc   = lgp.export_structure(bytes)
-        tl_list = lgp.tree_to_navbar(struc, ttype, tspace)
+        root = lgp.export_structure(bytes)
     elseif language == 'lua' then
-        struc   = lgl.export_structure(bytes)
-        tl_list = lgl.tree_to_navbar(struc, ttype, tspace)
-    else
-        struc = nil
+        root = lgl.export_structure(bytes)
     end
 
-    local display_text = {}
+    if root then
+        tl_list = root:to_navbar(ttype, tspace)
+    end
 
     node_list = {}
     for _, tl in ipairs(tl_list) do
