@@ -1,4 +1,4 @@
---- @module navbar.lang
+--- @module navbar.lang_python
 
 local nvb_path = "navbar/?.lua;"
 if not string.find(package.path, nvb_path) then
@@ -68,39 +68,6 @@ function lgp.match_python_item(line)
     return ret
 end
 
-
--------------------------------------------------------------------------------
--- Data Structures
--------------------------------------------------------------------------------
-
---- Node inherit from tree.NodeSimple.
--- @type Node
-lgp.Node = gen.class(lg.Node)
-
---- Initialize Node
--- @tparam string name The name of the python object.
--- @tparam int kind The kind of object (T_NONE, T_CLASS, etc.)
--- @tparam int indent The level of indentation of the python code.
--- @tparam int line The line from the buffer where we can see this item.
--- @tparam bool closed Whether this node should be closed or not (i.e. whether children will be visible or not).
-function lgp.Node:__init(name, kind, indent, line, closed)
-    lg.Node.__init(self, name, kind, line, closed)
-    self.indent = indent or 0
-end
-
---- Return a representation of the current node.
--- Note: the order doesn't match the Node() constructor, but it is easier to read.
--- @treturn string Node(kind, name, line, indend).
-function lgp.Node:__repr()
-    -- Allow us to display the nodes in a readable way.
-    return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent}, ', ') .. ')'
-end
-
-
--------------------------------------------------------------------------------
--- Main Functions
--------------------------------------------------------------------------------
-
 --- Export the python structure of a buffer containing python code
 -- @tparam string str The string (buffer content) to analyse.
 -- @treturn Node A tree (made of Nodes) representing the structure.
@@ -157,7 +124,7 @@ function lgp.tree_to_navbar(tree, stylename, spacing)
     stylename = stylename or 'bare'
     spacing = spacing or 0
 
-    local ttree
+    local ttree = {}
     local classes   = lgp.Node('Classes')
     local functions = lgp.Node('Functions')
     local variables = lgp.Node('Variables')
@@ -172,19 +139,49 @@ function lgp.tree_to_navbar(tree, stylename, spacing)
         end
     end
 
-    ttree = classes:list(stylename, spacing)
-    table.insert(ttree, { text = '', node = nil })
+    local empty_line = lg.TreeLine()
 
-    for _, v in ipairs(functions:list(stylename, spacing)) do
-        table.insert(ttree, v)
+    ttree = classes:list_tree(stylename, spacing)
+    table.insert(ttree, empty_line)
+
+    for _, tl in ipairs(functions:list_tree(stylename, spacing)) do
+        table.insert(ttree, tl)
     end
-    table.insert(ttree, { text = '', node = nil })
+    table.insert(ttree, empty_line)
 
-    for _, v in ipairs(variables:list(stylename, spacing)) do
-        table.insert(ttree, v)
+    for _, tl in ipairs(variables:list_tree(stylename, spacing)) do
+        table.insert(ttree, tl)
     end
 
     return ttree
+end
+
+
+-------------------------------------------------------------------------------
+-- Data Structures
+-------------------------------------------------------------------------------
+
+--- Node inherit from tree.NodeSimple.
+-- @type Node
+lgp.Node = gen.class(lg.Node)
+
+--- Initialize Node
+-- @tparam string name The name of the python object.
+-- @tparam int kind The kind of object (T_NONE, T_CLASS, etc.)
+-- @tparam int indent The level of indentation of the python code.
+-- @tparam int line The line from the buffer where we can see this item.
+-- @tparam bool closed Whether this node should be closed or not (i.e. whether children will be visible or not).
+function lgp.Node:__init(name, kind, indent, line, closed)
+    lg.Node.__init(self, name, kind, line, closed)
+    self.indent = indent or 0
+end
+
+--- Return a representation of the current node.
+-- Note: the order doesn't match the Node() constructor, but it is easier to read.
+-- @treturn string Node(kind, name, line, indend).
+function lgp.Node:__repr()
+    -- Allow us to display the nodes in a readable way.
+    return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent}, ', ') .. ')'
 end
 
 

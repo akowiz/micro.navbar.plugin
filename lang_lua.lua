@@ -74,20 +74,6 @@ function lgl.match_lua_item(line)
     return node
 end
 
-
--------------------------------------------------------------------------------
--- Data Structures
--------------------------------------------------------------------------------
-
---- Node inherit from tree.NodeSimple.
--- @type Node
-lgl.Node = gen.class(lg.Node)
-
-
--------------------------------------------------------------------------------
--- Main Functions
--------------------------------------------------------------------------------
-
 --- Export the python structure of a buffer containing python code
 -- @tparam string str The string (buffer content) to analyse.
 -- @treturn Node A tree (made of Nodes) representing the structure.
@@ -209,21 +195,41 @@ function lgl.tree_to_navbar(tree, stylename, spacing)
         end
     end
 
-    ttree = objects:list(stylename, spacing)
-    table.insert(ttree, { text = '', node = nil })
+    local empty_line = lg.TreeLine()
 
-    for _, v in ipairs(functions:list(stylename, spacing)) do
-        table.insert(ttree, v)
+    ttree = objects:list_tree(stylename, spacing)
+    table.insert(ttree, empty_line)
+
+    for _, tl in ipairs(functions:list_tree(stylename, spacing)) do
+        table.insert(ttree, tl)
     end
-    table.insert(ttree, { text = '', node = nil })
+    table.insert(ttree, empty_line)
 
-    for _, v in ipairs(variables:list(stylename, spacing)) do
-        table.insert(ttree, v)
+    for _, tl in ipairs(variables:list_tree(stylename, spacing)) do
+        table.insert(ttree, tl)
     end
 
     return ttree
 end
 
+
+-------------------------------------------------------------------------------
+-- Data Structures
+-------------------------------------------------------------------------------
+
+--- Node inherit from tree.NodeSimple.
+-- @type Node
+lgl.Node = gen.class(lg.Node)
+
+--- Initialize Node
+-- @tparam string name The name of the python object.
+-- @tparam int kind The kind of object (T_NONE, T_CLASS, etc.)
+-- @tparam int indent The level of indentation of the python code.
+-- @tparam int line The line from the buffer where we can see this item.
+-- @tparam bool closed Whether this node should be closed or not (i.e. whether children will be visible or not).
+function lgl.Node:__init(name, kind, line, closed)
+    lg.Node.__init(self, name, kind, line, closed)
+end
 
 -------------------------------------------------------------------------------
 -- Module
