@@ -67,13 +67,14 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 BUGS
 ----
+- We should not show the window if the content of the buffer is not supported.
+- When several tabs are open, opening navbar change the name of the tab. If several navbar are running, more sidebar are open, it gets messy quickly.
 - Error if micro is not run from the development folder (this is a big issue) because extra modules (generic, etc.) can not be found.
 
 TODO
 ----
-- Properly handle when the screen has been splitted already.
 - Add ability to save the open/close status in between sessions (using json to store the data?)
 - Add proper documentation to navbar.
-- In addition to displaying the tree in the left panel, we need to provide a function that translate a line + action (+, -, ENTER) into a action for the script (open, fold, close). We will need to keep the tree in memory to set the open/close values of the nodes.
+- When refreshing the view, we rebuild the strcuture tree from scratch. We should do it only when we save the buffer.
 - We need to keep the configuration of the side bp:ID() (buffer + main buffer and tabs) somewhere so that we can use it for updates (avoid opening a side buffer for a side buffer, etc.).
 - Write a proper parser to extract objects, classes, functions, variables, constants with depth
