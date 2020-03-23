@@ -270,19 +270,21 @@ function tree.NodeBase:to_treelines(stylename, spacing, hide_me)
     for k, child in ipairs(children) do
         local isfirst = (k == 1)
         local islast  = (k == #children)
-        to_treelines_rec(style, child, list, padding, islast, isfirst)
+        to_treelines_rec(style, child, list, padding, islast, isfirst, closed)
     end
 
     return list
 end
 
 --- Convert a tree (made of Nodes) into a list of TreeLine (used to display our navbar).
--- @tparam Node tree The tree to convert.
+-- Note: the root of the tree will be hidden.
+-- @tparam string stylename The name of the string to be used. @see tree.get_style.
+-- @tparam int spacing The number of extra characters to add in the lead.
 -- @treturn table A list of TreeLine.
 function tree.NodeBase:to_navbar(stylename, spacing)
     stylename = stylename or 'bare'
     spacing = spacing or 0
-    local tl_list = self:to_treelines(stylename, spacing)
+    local tl_list = self:to_treelines(stylename, spacing, true)
     return tl_list
 end
 
