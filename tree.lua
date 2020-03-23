@@ -186,13 +186,15 @@ end
 -- @tparam string stylename The name of the string to be used. @see tree.get_style.
 -- @tparam int spacing The number of extra characters to add in the lead.
 -- @tparam bool hide_me Set to true to 'hide' the current node (i.e. only display its' children)
+-- @tparam table closed A list of string indicating that some nodes are closed (their children hidden).
 -- @treturn string The tree in a string format.
-function tree.NodeBase:tree(stylename, spacing, hide_me)
+function tree.NodeBase:tree(stylename, spacing, hide_me, closed)
     stylename = stylename or 'bare'
     spacing = spacing or 0
     hide_me = hide_me or false
+    closed  = closed or {}
 
-    local tl_list = self:to_treelines(stylename, spacing, hide_me)
+    local tl_list = self:to_treelines(stylename, spacing, hide_me, closed)
     local str_list = {}
     local ret
 
@@ -212,10 +214,12 @@ end
 -- @tparam string padding The string to use as padding for the current node.
 -- @tparam bool islast Set to true if node is the last children.
 -- @tparam bool isfirst Set to true if node is the first children.
-local function to_treelines_rec(style, node, list, padding, islast, isfirst)
+-- @tparam table closed A list of string indicating that some nodes are closed (their children hidden).
+local function to_treelines_rec(style, node, list, padding, islast, isfirst, closed)
     style = style or tree.get_style('bare', 0)
     list = list or {}
     padding = padding or ''
+    closed = closed or {}
 
     local lead_type
 
@@ -240,7 +244,7 @@ local function to_treelines_rec(style, node, list, padding, islast, isfirst)
         else
             child_padding = padding .. style['link']
         end
-        to_treelines_rec(style, child, list, child_padding, child_last, child_first)
+        to_treelines_rec(style, child, list, child_padding, child_last, child_first, closed)
     end
 end
 
@@ -248,12 +252,14 @@ end
 -- @tparam string stylename The name of the string to be used. @see tree.get_style.
 -- @tparam int spacing The number of extra characters to add in the lead.
 -- @tparam bool hide_me Set to true to 'hide' the current node (i.e. only display its' children)
+-- @tparam table closed A list of string indicating that some nodes are closed (their children hidden).
 -- @treturn table A list of TreeLine() objects.
-function tree.NodeBase:to_treelines(stylename, spacing, hide_me)
+function tree.NodeBase:to_treelines(stylename, spacing, hide_me, closed)
     -- Returns the tree (current node as root) in a string.
     stylename = stylename or 'bare'
     spacing = spacing or 0
     hide_me = hide_me or false
+    closed  = closed or {}
 
     local style = tree.get_style(stylename, spacing)
     local list = {}
@@ -280,11 +286,13 @@ end
 -- Note: the root of the tree will be hidden.
 -- @tparam string stylename The name of the string to be used. @see tree.get_style.
 -- @tparam int spacing The number of extra characters to add in the lead.
+-- @tparam table closed A list of string indicating that some nodes are closed (their children hidden).
 -- @treturn table A list of TreeLine.
-function tree.NodeBase:to_navbar(stylename, spacing)
+function tree.NodeBase:to_navbar(stylename, spacing, closed)
     stylename = stylename or 'bare'
     spacing = spacing or 0
-    local tl_list = self:to_treelines(stylename, spacing, true)
+    closed = closed or {}
+    local tl_list = self:to_treelines(stylename, spacing, true, closed)
     return tl_list
 end
 

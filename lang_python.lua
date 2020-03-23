@@ -145,11 +145,14 @@ function lgp.Node:__repr()
 end
 
 --- Convert a tree (made of Nodes) into 3 trees (made of Nodes)
--- @tparam Node node The tree to convert.
+-- @tparam string stylename The name of the string to be used. @see tree.get_style.
+-- @tparam int spacing The number of extra characters to add in the lead.
+-- @tparam table closed A list of string indicating that some nodes are closed (their children hidden).
 -- @treturn table A list of {display_text, line}.
-function lgp.Node:to_navbar(stylename, spacing)
+function lgp.Node:to_navbar(stylename, spacing, closed)
     stylename = stylename or 'bare'
     spacing = spacing or 0
+    closed = closed or {}
 
     local tl_list
     local classes   = lgp.Node('Classes')
