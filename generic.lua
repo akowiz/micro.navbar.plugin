@@ -64,6 +64,21 @@ function string:split(sep, max, regex)
    return record
 end
 
+--- Clone/Copy a table
+function gen.table_clone(tab)
+  return { table.unpack(tab) }
+end
+
+--- Reverse a table.
+function gen.table_reverse(tab)
+    local i, j = 1, #tab
+    while i < j do
+        tab[i], tab[j] = tab[j], tab[i]
+        i = i + 1
+        j = j - 1
+    end
+end
+
 --- Return true if table == {}, false otherwise.
 -- @tparam table table A table.
 -- @return true if the table is {}, false otherwise.
