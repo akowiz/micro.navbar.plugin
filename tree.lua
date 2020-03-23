@@ -182,48 +182,6 @@ function tree.NodeBase:sort_children_rec()
     end
 end
 
---- Recursively build a tree representation of the current node (node as root).
--- The table tree is used to accumulate the result of the recursion.
--- @tparam table style A style table to be used to display items.
--- @tparam Node node The node to process.
--- @tparam table tree A table used to store all strings generated.
--- @tparam string padding The string to use as padding for the current node.
--- @tparam bool islast Set to true if node is the last children.
--- @tparam bool isfirst Set to true if node is the first children.
-local function tree_rec(style, node, tree, padding, islast, isfirst)
-    style = style or tree.get_style('bare', 0)
-    tree = tree or {}
-    padding = padding or ''
-
-    local lead
-
-    -- print(node.name, padding, islast, isfirst)
-
-    if     islast then
-        lead = node:select_lead(style['lst_key'],
-                                style['lst_key_open'])
-    elseif isfirst then
-        lead = node:select_lead(style['1st_level_1st_key'],
-                                style['1st_level_1st_key_open'])
-    else
-        lead = node:select_lead(style['nth_key'],
-                                style['nth_key_open'])
-    end
-    table.insert(tree, padding .. lead .. node:get_label())
-
-    for k, child in ipairs(node:get_children()) do
-        local child_first = (k == 1)
-        local child_last = (k == #node:get_children())
-        local child_padding
-        if islast then
-            child_padding = padding .. style['empty']
-        else
-            child_padding = padding .. style['link']
-        end
-        tree_rec(style, child, tree, child_padding, child_last, child_first)
-    end
-end
-
 --- Build a tree representation of the current node (node as root).
 -- @tparam string stylename The name of the string to be used. @see tree.get_style.
 -- @tparam int spacing The number of extra characters to add in the lead.
@@ -245,7 +203,6 @@ function tree.NodeBase:tree(stylename, spacing, hide_me)
     ret = table.concat(str_list, '\n')
     return ret
 end
-
 
 --- Recursively build a tree representation of the current node as a list of TreeLine.
 -- The table tree is used to accumulate the result of the recursion.
