@@ -178,12 +178,18 @@ end
 -- The lead characters are displayed in from of the node's label in the tree.
 -- @tparam string default Lead characters to be used if the node has no children.
 -- @tparam string open Lead characters to be used if the node has children and is 'open'.
+-- @tparam set closed List of abs_label that have to be closed.
 -- @treturn string The lead characters to be used.
-function tree.NodeBase:select_lead(default, open)
+function tree.NodeBase:select_lead(default, open, close, closed)
+    closed = closed or {}
+
     local lead = default
     local children = self:get_children()
     if not gen.is_empty(children) then
         lead = open
+        if closed[self:get_abs_label()] then
+            lead = close
+        end
     end
     return lead
 end
@@ -244,25 +250,27 @@ local function to_treelines_rec(style, node, list, padding, islast, isfirst, clo
     -- print(node.name, padding, islast, isfirst)
 
     if     islast then
-        lead_type = node:select_lead('lst_key', 'lst_key_open')
+        lead_type = node:select_lead('lst_key', 'lst_key_open', 'lst_key_closed', closed)
     elseif isfirst then
-        lead_type = node:select_lead('1st_level_1st_key', '1st_level_1st_key_open')
+        lead_type = node:select_lead('1st_level_1st_key', '1st_level_1st_key_open', '1st_level_1st_key_closed', closed)
     else
-        lead_type = node:select_lead('nth_key', 'nth_key_open')
+        lead_type = node:select_lead('nth_key', 'nth_key_open', 'nth_key_closed', closed)
     end
 
     table.insert(list, tree.TreeLine(node, padding, lead_type, style))
 
-    for k, child in ipairs(node:get_children()) do
-        local child_first = (k == 1)
-        local child_last = (k == #node:get_children())
-        local child_padding
-        if islast then
-            child_padding = padding .. style['empty']
-        else
-            child_padding = padding .. style['link']
+    if not closed[node:get_abs_label()] then
+        for k, child in ipairs(node:get_children()) do
+            local child_first = (k == 1)
+            local child_last = (k == #node:get_children())
+            local child_padding
+            if islast then
+                child_padding = padding .. style['empty']
+            else
+                child_padding = padding .. style['link']
+            end
+            to_treelines_rec(style, child, list, child_padding, child_last, child_first, closed)
         end
-        to_treelines_rec(style, child, list, child_padding, child_last, child_first, closed)
     end
 end
 
@@ -285,16 +293,18 @@ function tree.NodeBase:to_treelines(stylename, spacing, hide_me, closed)
     local padding = nil
 
     if not hide_me then
-        lead_type = self:select_lead('root', 'root_open')
+        lead_type = self:select_lead('root', 'root_open', 'root_closed', closed)
         table.insert(list, tree.TreeLine(self, '', lead_type, style))
         padding = style['empty']
     end
 
-    local children = self:get_children()
-    for k, child in ipairs(children) do
-        local isfirst = (k == 1)
-        local islast  = (k == #children)
-        to_treelines_rec(style, child, list, padding, islast, isfirst, closed)
+    if not closed[self:get_abs_label()] then
+        local children = self:get_children()
+        for k, child in ipairs(children) do
+            local isfirst = (k == 1)
+            local islast  = (k == #children)
+            to_treelines_rec(style, child, list, padding, islast, isfirst, closed)
+        end
     end
 
     return list
