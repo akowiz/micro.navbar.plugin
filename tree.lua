@@ -173,10 +173,9 @@ function tree.NodeBase:select_lead(default, closed, open)
     local lead = default
     local children = self:get_children()
     if not gen.is_empty(children) then
+        lead = open
         if self:is_closed() then
             lead = closed
-        else
-            lead = open
         end
     end
     return lead
