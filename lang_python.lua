@@ -171,15 +171,15 @@ function lgp.Node:to_navbar(stylename, spacing, closed)
 
     local empty_line = tree.TreeLine()
 
-    tl_list = classes:to_treelines(stylename, spacing)
+    tl_list = classes:to_treelines(stylename, spacing, false, closed)
     table.insert(tl_list, empty_line)
 
-    for _, tl in ipairs(functions:to_treelines(stylename, spacing)) do
+    for _, tl in ipairs(functions:to_treelines(stylename, spacing, false, closed)) do
         table.insert(tl_list, tl)
     end
     table.insert(tl_list, empty_line)
 
-    for _, tl in ipairs(variables:to_treelines(stylename, spacing)) do
+    for _, tl in ipairs(variables:to_treelines(stylename, spacing, false, closed)) do
         table.insert(tl_list, tl)
     end
 
