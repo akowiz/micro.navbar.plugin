@@ -25,7 +25,7 @@ local SIZE_MIN = 15
 local main_view = nil -- The original panel
 local tree_view = nil -- The navbar panel
 local node_list = nil
-local closed = gen.set({'Classes/Foo', 'Classes/Bar', 'Functions', 'Variables'})
+local closed = {}     -- Set of nodes that should be closed on display.
 
 -- Holds the views for the multiple panes we are manipulating
 local tree_views = {}
@@ -278,59 +278,49 @@ end
 
 function nvb_goto_line()
     if tree_view ~= nil and (micro.CurPane() == tree_view) then
-        local tree_line
+        local last_y = tree_view.Cursor.Loc.Y
         local node
-        -- Retrieve the line number to jump to
-        tree_line = tree_view.Cursor.Loc.Y - 1
-        node = node_list[tree_line]
+        node = node_list[last_y - 1]
 
         if node ~= false and node.line ~= -1 then
             main_view.Cursor.Loc.Y = node.line - 1
             main_view.Cursor:Relocate()
             main_view:Center()
             main_view.Cursor:SelectLine()
+            select_line(nil, last_y)
         end
     end
 end
 
 function nvb_node_open()
-    -- FIXME: When the view is refresh, this will be lost!
-    -- We need to remember the closed status independantly from the building
-    -- of the list, and apply it after the list has been rebuilt.
-    -- We also might want a function to refresh the list without rebuilding
-    -- it fully.
-    -- We don't want to loose the closed status whenever we add/remove items
-    -- in our source file.
-    -- we might also want to have persistant saving between sessions.
     if tree_view ~= nil and (micro.CurPane() == tree_view) then
-        local tree_line
+        local last_y = tree_view.Cursor.Loc.Y
         local node
-        tree_line = tree_view.Cursor.Loc.Y - 1
-        node = node_list[tree_line]
+        node = node_list[last_y - 1]
 
         if node ~= false then
             local abs_label = node:get_abs_label()
             if closed[abs_label] then
                 closed[abs_label] = nil
                 refresh_view()
+                select_line(nil, last_y)
             end
         end
     end
 end
 
 function nvb_node_close()
-    -- FIXME: When the view is refresh, this will be lost!
     if tree_view ~= nil and (micro.CurPane() == tree_view) then
-        local tree_line
+        local last_y = tree_view.Cursor.Loc.Y
         local node
-        tree_line = tree_view.Cursor.Loc.Y - 1
-        node = node_list[tree_line]
+        node = node_list[last_y - 1]
 
         if node ~= false then
             local abs_label = node:get_abs_label()
             if not closed[abs_label] then
                 closed[abs_label] = true
                 refresh_view()
+                select_line(nil, last_y)
             end
         end
     end
