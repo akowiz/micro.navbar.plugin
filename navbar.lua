@@ -15,22 +15,43 @@ local buffer = import("micro/buffer")
 local gen = require('generic')
 local lgp = require('lang_python')
 local lgl = require('lang_lua')
-local gen = require('generic')
 
 local DISPLAY_NAME = 'navbar'
 local SIZE_MIN = 15
 
 
--- Holds the micro.CurPane() we're manipulating
-local main_view = nil -- The original panel
-local tree_view = nil -- The navbar panel
-local root_tree = nil
-local node_list = nil
-local closed = {}     -- Set of nodes that should be closed on display.
+local conf = nil
 
--- Holds the views for the multiple panes we are manipulating
-local tree_views = {}
 
+-------------------------------------------------------------------------------
+
+-- @type NavBufConf
+local NavBufConf = gen.class()
+
+function NavBufConf:__init(main)
+    self.main_view = main or nil
+    self.tree_view = nil
+    self.root = nil
+    self.node_list = nil
+    self.closed = {}
+    self.language = nil
+
+    self:detect_language()
+end
+
+--- Detect the language in the main buffer, use filename if necessary.
+function NavBufConf:detect_language()
+    local ft = self.main_view.Buf:FileType()
+    local fn = self.main_view.Buf:GetName()
+
+    if     (ft == 'python') or ((ft == '') and (fn:ends_with('.py') or fn:ends_with('.py2') or fn:ends_with('.py3'))) then
+        self.language = 'python'
+    elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
+        self.language = 'lua'
+    end
+end
+
+-------------------------------------------------------------------------------
 
 
 --- Retrieve the global option, validate it against a list and provide default if value is not in list.
@@ -80,26 +101,20 @@ local function clear_messenger()
 end
 
 local function refresh_structure()
-    local ft = main_view.Buf:FileType()
-    local fn = main_view.Buf:GetName()
-    local language
+    conf:detect_language()
 
-    if     (ft == 'python') or ((ft == '') and (fn:ends_with('.py'))) then
-        language = 'python'
-    elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
-        language = 'lua'
-    else
+    if not conf.language then
         micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
+        return
     end
 
-    local bytes = util.String(main_view.Buf:Bytes())
+    local bytes = util.String(conf.main_view.Buf:Bytes())
 
-    if     language == 'python' then
-        root_tree = lgp.export_structure(bytes)
-    elseif language == 'lua' then
-        root_tree = lgl.export_structure(bytes)
-    else
-        root_tree = nil
+    conf.root = nil
+    if     conf.language == 'python' then
+        conf.root = lgp.export_structure(bytes)
+    elseif conf.language == 'lua' then
+        conf.root = lgl.export_structure(bytes)
     end
 end
 
@@ -110,17 +125,17 @@ local function display_content()
     local tl_list = {}
     local display_text = {}
 
-    if root_tree then
-        tl_list = root_tree:to_navbar(ttype, tspace, closed)
+    if conf.root then
+        tl_list = conf.root:to_navbar(ttype, tspace, conf.closed)
     end
 
-    node_list = {}
+    conf.node_list = {}
     for _, tl in ipairs(tl_list) do
         display_text[#display_text+1] = tostring(tl)
         if tl.node ~= nil then
-            node_list[#node_list+1] = tl.node
+            conf.node_list[#conf.node_list+1] = tl.node
         else
-            node_list[#node_list+1] = false
+            conf.node_list[#conf.node_list+1] = false
         end
     end
 
@@ -134,19 +149,21 @@ local function refresh_view(buf)
     local content = display_content()
 
     -- delete everything in the tree_view
-    tree_view.Buf.EventHandler:Remove(tree_view.Buf:Start(), tree_view.Buf:End())
+    conf.tree_view.Buf.EventHandler:Remove(
+        conf.tree_view.Buf:Start(),
+        conf.tree_view.Buf:End())
 
     -- display a new tree_view
-    tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), 'Symbols\n\n')
-    tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
-    tree_view:Tab():Resize()
+    conf.tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), 'Symbols\n\n')
+    conf.tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
+    conf.tree_view:Tab():Resize()
 end
 
 -- Hightlights the line when you move the cursor up/down
 local function select_line(pane, last_y)
-    pane = pane or tree_view
+    pane = pane or conf.tree_view
 
-    if pane == tree_view then
+    if pane == conf.tree_view then
         -- Make last_y optional
         if last_y ~= nil then
             -- Don't let them move past the 2 first lines
@@ -176,7 +193,7 @@ end
 
 -- Moves the cursor to the ".." in tree_view
 local function move_cursor_top(pane)
-    pane = pane or tree_view
+    pane = pane or conf.tree_view
 
     -- line to go to
     if pane == tree_view then
@@ -191,7 +208,7 @@ end
 
 -- Move the cursor to the top, but don't allow the action
 local function aftermove_if_tree(view)
-    if view == tree_view then
+    if view == conf.tree_view then
         if view.Cursor.Loc.Y < 2 then
             -- If it went past the "..", move back onto it
             view.Cursor:DownN(2 - view.Cursor.Loc.Y)
@@ -202,20 +219,20 @@ end
 
 -- Used to fail certain actions that we shouldn't allow on the tree_view
 local function false_if_tree(view)
-    if view == tree_view then
+    if view == conf.tree_view then
         return false
     end
 end
 
 -- Select the line at the cursor
 local function selectline_if_tree(view)
-    if view == tree_view then
+    if view == conf.tree_view then
         select_line(view)
     end
 end
 
 local function clearselection_if_tree(view)
-    if view == tree_view then
+    if view == conf.tree_view then
         -- Clear the selection when doing a find, so it doesn't copy the current line
         view.Cursor:ResetSelection()
     end
@@ -260,7 +277,7 @@ function preRune(view, rune)
     local rune_close = config.GetGlobalOption("navbar.treeview_rune_close")
     local rune_goto = config.GetGlobalOption("navbar.treeview_rune_goto")
 
-    if view ~= tree_view then
+    if view ~= conf.tree_view then
         return
     else
         if rune == rune_open then
@@ -281,31 +298,29 @@ function onFind(view)
 end
 
 function nvb_goto_line()
-    if tree_view ~= nil and (micro.CurPane() == tree_view) then
-        local last_y = tree_view.Cursor.Loc.Y
-        local node
-        node = node_list[last_y - 1]
+    if conf.tree_view ~= nil and (micro.CurPane() == conf.tree_view) then
+        local last_y = conf.tree_view.Cursor.Loc.Y
+        local node = conf.node_list[last_y - 1]
 
         if node ~= false and node.line ~= -1 then
-            main_view.Cursor.Loc.Y = node.line - 1
-            main_view.Cursor:Relocate()
-            main_view:Center()
-            main_view.Cursor:SelectLine()
+            conf.main_view.Cursor.Loc.Y = node.line - 1
+            conf.main_view.Cursor:Relocate()
+            conf.main_view:Center()
+            conf.main_view.Cursor:SelectLine()
             select_line(nil, last_y)
         end
     end
 end
 
 function nvb_node_open()
-    if tree_view ~= nil and (micro.CurPane() == tree_view) then
-        local last_y = tree_view.Cursor.Loc.Y
-        local node
-        node = node_list[last_y - 1]
+    if conf.tree_view ~= nil and (micro.CurPane() == conf.tree_view) then
+        local last_y = conf.tree_view.Cursor.Loc.Y
+        local node = conf.node_list[last_y - 1]
 
         if node ~= false then
             local abs_label = node:get_abs_label()
-            if closed[abs_label] then
-                closed[abs_label] = nil
+            if conf.closed[abs_label] then
+                conf.closed[abs_label] = nil
                 refresh_view()
                 select_line(nil, last_y)
             end
@@ -314,15 +329,14 @@ function nvb_node_open()
 end
 
 function nvb_node_close()
-    if tree_view ~= nil and (micro.CurPane() == tree_view) then
-        local last_y = tree_view.Cursor.Loc.Y
-        local node
-        node = node_list[last_y - 1]
+    if conf.tree_view ~= nil and (micro.CurPane() == conf.tree_view) then
+        local last_y = conf.tree_view.Cursor.Loc.Y
+        local node = conf.node_list[last_y - 1]
 
         if node ~= false then
             local abs_label = node:get_abs_label()
-            if not closed[abs_label] then
-                closed[abs_label] = true
+            if not conf.closed[abs_label] then
+                conf.closed[abs_label] = true
                 refresh_view()
                 select_line(nil, last_y)
             end
@@ -332,45 +346,51 @@ end
 
 -- open_tree setup's the view
 local function open_tree()
-    -- Save the current panel so that we can use it later
-    main_view = micro.CurPane()
+    -- Keep the configuration of the navbar for the current buffer.
+    conf = NavBufConf(micro.CurPane())
+
+    if not conf.language then
+        micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
+        return
+    end
 
     -- Open a new Vsplit (on the very left)
     micro.CurPane():VSplitIndex(buffer.NewBuffer("", DISPLAY_NAME), false)
+
     -- Save the new view so we can access it later
-    tree_view = micro.CurPane()
+    conf.tree_view = micro.CurPane()
 
     -- Set the width of tree_view (in characters)
     local size = get_option_among_range('navbar.treeview_size', SIZE_MIN)
-    tree_view:ResizePane(size)
+    conf.tree_view:ResizePane(size)
 
     -- Set the type to unsavable
     -- tree_view.Buf.Type = buffer.BTLog
-    tree_view.Buf.Type.Scratch = true
-    tree_view.Buf.Type.Readonly = true
+    conf.tree_view.Buf.Type.Scratch = true
+    conf.tree_view.Buf.Type.Readonly = true
 
     -- Set the various display settings, but only on our view (by using
     -- SetLocalOption instead of SetOption)
 
     -- Set the softwrap value for treeview
     local sw = get_option_among_list('navbar.softwrap', {true, false}, false)
-    tree_view.Buf:SetOptionNative("softwrap", sw)
+    conf.tree_view.Buf:SetOptionNative("softwrap", sw)
 
     -- No line numbering
-    tree_view.Buf:SetOptionNative("ruler", false)
+    conf.tree_view.Buf:SetOptionNative("ruler", false)
     -- Is this needed with new non-savable settings from being "vtLog"?
-    tree_view.Buf:SetOptionNative("autosave", false)
+    conf.tree_view.Buf:SetOptionNative("autosave", false)
     -- Don't show the statusline to differentiate the view from normal views
-    tree_view.Buf:SetOptionNative("statusformatr", "")
-    tree_view.Buf:SetOptionNative("statusformatl", DISPLAY_NAME)
-    tree_view.Buf:SetOptionNative("scrollbar", false)
+    conf.tree_view.Buf:SetOptionNative("statusformatr", "")
+    conf.tree_view.Buf:SetOptionNative("statusformatl", DISPLAY_NAME)
+    conf.tree_view.Buf:SetOptionNative("scrollbar", false)
 
     -- Display the content
     refresh_structure()
-    refresh_view(main_view.Buf)
+    refresh_view(conf.main_view.Buf)
 
     -- Move the cursor
-    move_cursor_top(tree_view)
+    move_cursor_top(conf.tree_view)
 end
 
 -- close_tree will close the tree plugin view and release memory.
