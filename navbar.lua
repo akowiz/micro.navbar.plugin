@@ -23,7 +23,7 @@ local SIZE_MIN = 15
 
 
 local conf = nil
-
+local init_started = false
 
 -------------------------------------------------------------------------------
 
@@ -32,7 +32,8 @@ local conf = nil
 local NavBufConf = gen.class()
 
 function NavBufConf:__init(main)
-    micro.Log('> NavBufconf:__init('..tostring(main)..')')
+    micro.Log('> NavBufConf:__init('..tostring(main)..')')
+
     self.main_view = main or nil
     self.tree_view = nil
     self.root = nil
@@ -40,23 +41,11 @@ function NavBufConf:__init(main)
     self.closed = {}
     self.language = nil
 
-    self:detect_language()
-    micro.Log('< NavBufconf:__init')
-end
-
---- Detect the language in the main buffer, use filename if necessary.
-function NavBufConf:detect_language()
-    micro.Log('> NavBufconf:detect_language()')
-    local ft = self.main_view.Buf:FileType()
-    local fn = self.main_view.Buf:GetName()
-
-    if     (ft == 'python') or ((ft == '') and (fn:ends_with('.py') or fn:ends_with('.py2') or fn:ends_with('.py3'))) then
-        self.language = 'python'
-    elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
-        self.language = 'lua'
+    if (self.main_view ~= nil) then
+        self.language = self.main_view.Buf:FileType()
     end
-    micro.Log('  set language to '..tostring(self.language))
-    micro.Log('< NavBufconf:detect_language')
+
+    micro.Log('< NavBufConf.__init')
 end
 
 --- Display the configuration in a string.
@@ -64,7 +53,7 @@ function NavBufConf:__tostring()
     ret = {}
     table.insert(ret, 'main_view: '..tostring(self.main_view))
     table.insert(ret, 'tree_view: '..tostring(self.tree_view))
-    table.insert(ret, 'language:  '..self.language)
+    table.insert(ret, 'language:  '..tostring(self.language))
     table.insert(ret, 'closed:    '..gen.set_tostring(self.closed))
     ret = table.concat(ret, ', ')
     return ret
@@ -84,12 +73,10 @@ local function get_option_among_list(buf, name, values, default)
     micro.Log('> get_option_among_list(buf='..tostring(buf)..' name='..name..' default='..tostring(default)..')')
     local current = config.GetGlobalOption(name)
     micro.Log('  global option='..tostring(current))
-    if (buf ~= nil) and (buf.Settings ~= nil) then
+    if (buf ~= nil) then
         local local_option = buf.Settings[name]
-        if local_option then
-            micro.Log('  buffer option='..tostring(local_option))
-            current = local_option
-        end
+        micro.Log('  local option='..tostring(local_option))
+        current = local_option
     end
 
     default = default or values[1]
@@ -148,7 +135,6 @@ end
 
 local function refresh_structure()
     micro.Log('> refresh_structure()')
-    conf:detect_language()
 
     if not conf.language then
         micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
@@ -329,25 +315,33 @@ function onCursorEnd(pane)
     selectline_if_tree(pane)
 end
 
--- Run while opening a buffer panel
-function onBufPaneOpen(pane)
-    micro.Log('> onBufPaneOpen('..tostring(pane)..')')
-    -- FIXME: this is not working at the moment, weird behavior from micro
+-- Run while opening a buffer panel (when micro already running)
+function onBufferOpen(buf)
+    micro.Log('> onBufferOpen('..buf:GetName()..'/'..tostring(buf)..')')
 
-    -- Retrieve the FileType 'openonstart' option.
-    local openonstart = get_option_from_list(pane, 'navbar.openonstart', {true, false}, false)
+    -- Note: it is very important to wait until init has started to run,
+    -- because micro does some funny things with buffers at startup.
+    if init_started then
 
-    micro.Log('  conf is ' .. tostring(conf))
-    micro.Log('  pane name = ' .. pane.Buf:GetName())
-    micro.Log('  pane ft = ' .. pane.Buf:FileType())
-    micro.Log('  pane openonstart = ' .. tostring(openonstart))
+        -- Retrieve the FileType 'openonstart' option.
+        local openonstart = get_option_among_list(buf, 'navbar.openonstart', {true, false}, false)
 
-    if (conf == nil) and openonstart then
-        micro.Log('>>>')
-        toggle_tree()
-        -- this part is never displayed
-        micro.Log('<<<')
+        micro.Log('  conf is ' .. tostring(conf))
+        micro.Log('  buffer name = ' .. buf:GetName())
+        micro.Log('  buffer ft = ' .. buf:FileType())
+        micro.Log('  buffer openonstart = ' .. tostring(openonstart))
+
+        if (conf == nil) and openonstart then
+            toggle_tree()
+        end
+
     end
+
+    micro.Log('< onBufferOpen')
+end
+
+function onBufPaneOpen(pane)
+    micro.Log('> onBufPaneOpen('..pane.Buf:GetName()..'/'..tostring(pane)..')')
     micro.Log('< onBufPaneOpen')
 end
 
@@ -383,13 +377,19 @@ function preRune(pane, rune)
         local rune_open  = config.GetGlobalOption("navbar.treeview_rune_open")
         local rune_close = config.GetGlobalOption("navbar.treeview_rune_close")
         local rune_goto  = config.GetGlobalOption("navbar.treeview_rune_goto")
+        local rune_open_all  = config.GetGlobalOption("navbar.treeview_rune_open_all")
+        local rune_close_all = config.GetGlobalOption("navbar.treeview_rune_close_all")
 
-        if rune == rune_open then
+        if rune == rune_goto then
+            nvb_goto_line(pane)
+        elseif rune == rune_open then
             nvb_node_open(pane)
+        elseif rune == rune_open_all then
+            nvb_node_open_all(pane)
         elseif rune == rune_close then
             nvb_node_close(pane)
-        elseif rune == rune_goto then
-            nvb_goto_line(pane)
+        elseif rune == rune_close_all then
+            nvb_node_close_all(pane)
         end
         return false -- no need to process any further with other plugins.
     end
@@ -516,6 +516,18 @@ function nvb_node_open(pane)
     micro.Log('< nvb_node_open')
 end
 
+--- Command to open all previously closed nodes in our tree view.
+function nvb_node_open_all(pane)
+    micro.Log('> nvb_node_open_all('..tostring(pane)..')')
+    if (conf ~= nil) and (pane == conf.tree_view) then
+        local last_y = 2
+        conf.closed = {}
+        refresh_view()
+        select_line(pane, last_y)
+    end
+    micro.Log('< nvb_node_open_all')
+end
+
 --- Command to close a node with visible children in our tree view.
 function nvb_node_close(pane)
     micro.Log('> nvb_node_close('..tostring(pane)..')')
@@ -533,6 +545,28 @@ function nvb_node_close(pane)
         end
     end
     micro.Log('< nvb_node_close')
+end
+
+--- Command to close all node with visible children in our tree view.
+function nvb_node_close_all(pane)
+    micro.Log('> nvb_node_close_all('..tostring(pane)..')')
+    if (conf ~= nil) and (pane == conf.tree_view) then
+        local last_y = pane.Cursor.Loc.Y
+
+        for _, node in ipairs(conf.node_list) do
+            -- Note: we have inserted boolean (false) in the list of nodes
+            -- for the blank lines.
+            if node then
+                if not gen.is_empty(node:get_children()) then
+                    local abs_label = node:get_abs_label()
+                    conf.closed[abs_label] = true
+                end
+            end
+        end
+        refresh_view()
+        select_line(pane, last_y)
+    end
+    micro.Log('< nvb_node_close_all')
 end
 
 --- Command to toggle the side bar with our tree view.
@@ -554,6 +588,7 @@ end
 --- Initialize the navbar plugin.
 function init()
     micro.Log('> init')
+    init_started = true
     config.AddRuntimeFile("navbar", config.RTHelp, "help/navbar.md")
     config.TryBindKey("Alt-n", "lua:navbar.toggle_tree", false)
 
@@ -565,7 +600,9 @@ function init()
     config.RegisterCommonOption("navbar", "softwrap", false)
     config.RegisterCommonOption("navbar", "treeview_size", 25)
     config.RegisterCommonOption("navbar", "treeview_rune_open", '+')
+    config.RegisterCommonOption("navbar", "treeview_rune_open_all", 'o')
     config.RegisterCommonOption("navbar", "treeview_rune_close", '-')
+    config.RegisterCommonOption("navbar", "treeview_rune_close_all", 'c')
     config.RegisterCommonOption("navbar", "treeview_rune_goto", ' ')
 
     -- Open/close the tree view
@@ -574,8 +611,12 @@ function init()
     config.MakeCommand("nvb_goto", nvb_goto_line, config.NoComplete)
     -- Close an open node
     config.MakeCommand("nvb_close", nvb_node_close, config.NoComplete)
+    -- Close all open nodes
+    config.MakeCommand("nvb_close_all", nvb_node_close_all, config.NoComplete)
     -- Open a closed node
     config.MakeCommand("nvb_open", nvb_node_open, config.NoComplete)
+    -- Open all closed nodes
+    config.MakeCommand("nvb_open_all", nvb_node_open_all, config.NoComplete)
 
     -- NOTE: This must be below the syntax load command or coloring won't work
     -- Just auto-open if the option is enabled
