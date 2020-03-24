@@ -417,7 +417,7 @@ end
 -- Run when closing the main buffer
 function preQuit(pane)
     micro.Log('> preQuit('..pane.Buf:GetName()..'/'..tostring(pane)..')')
-    if pane == conf.main_view then
+    if (conf ~= nil) and (pane == conf.main_view) then
         close_tree(pane)
     end
     micro.Log('< preQuit')
@@ -426,7 +426,9 @@ end
 -- Run when closing all
 function preQuitAll(pane)
     micro.Log('> preQuitAll('..pane.Buf:GetName()..'/'..tostring(pane)..')')
-    nvb_close_tree(pane)
+    if (conf ~= nil) then
+        close_tree(pane)
+    end
     micro.Log('< preQuitAll')
 end
 
