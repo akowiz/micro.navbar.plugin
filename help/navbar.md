@@ -13,15 +13,8 @@ Currently, the languages supported are:
 - Python3
 - Lua
 
-To initiate the navbar, simply
+To toggle the side window with the navigation bar, simply press "F5" (or use command `navbar`).
 
-Press "F5"
-
-Or run:
-
-```
-> navbar
-```
 
 In the navbar side windows, you can navigate using your keyboard or the mouse.
 
