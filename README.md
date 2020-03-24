@@ -71,7 +71,7 @@ BUGS
 ----
 - When several tabs are open, opening navbar change the name of the tab. If several navbar are running, more sidebar are open, it gets messy quickly.
 - Error if micro is not run from the development folder (this is a big issue) because extra modules (generic, etc.) can not be found.
-- When we remove/add lines in the main_window, the nvb_goto_line numbers are not updated and are wrong, maybe we should rebuild the whole list after all instead of disconecting display from build.
+- When closing the main buffer, we should close the sidebar too.
 
 TODO
 ----
