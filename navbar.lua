@@ -182,7 +182,7 @@ local function display_content()
 end
 
 local function refresh_view(buf)
-    micro.Log('> display_content()')
+    micro.Log('> refresh_view()')
     clear_messenger()
 
     local content = display_content()
@@ -197,7 +197,7 @@ local function refresh_view(buf)
     conf.tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
     conf.tree_view:Tab():Resize()
 
-    micro.Log('< display_content()')
+    micro.Log('< refresh_view')
 end
 
 
@@ -318,7 +318,7 @@ end
 -- Run while opening a buffer panel (when micro already running)
 function onBufferOpen(buf)
     micro.Log('> onBufferOpen('..buf:GetName()..'/'..tostring(buf)..')')
-
+--[[
     -- Note: it is very important to wait until init has started to run,
     -- because micro does some funny things with buffers at startup.
     if init_started then
@@ -336,7 +336,7 @@ function onBufferOpen(buf)
         end
 
     end
-
+--]]
     micro.Log('< onBufferOpen')
 end
 
@@ -351,6 +351,7 @@ function onSave(pane)
     if (conf ~= nil) and (pane == conf.main_view) then
         -- rebuild the content of the tree whenever we save the main buffer.
         refresh_structure()
+        refresh_view()
     end
     micro.Log('< onSave')
 end
@@ -401,7 +402,7 @@ end
 
 --- Helper function to open a side panel with our navigation bar.
 local function nvb_open_tree(pane)
-    micro.Log('> nvb_open_tree('..tostring(pane)..')')
+    micro.Log('> nvb_open_tree('..pane.Buf:GetName()..'/'..tostring(pane)..')')
     local main_view = pane
 
     conf = NavBufConf(main_view)
