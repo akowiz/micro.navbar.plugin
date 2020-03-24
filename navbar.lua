@@ -133,6 +133,53 @@ local function clear_messenger()
     -- messenger:Clear()
 end
 
+-- Hightlights the line when you move the cursor up/down
+local function select_line(pane, last_y)
+    pane = pane or conf.tree_view
+
+    if pane == conf.tree_view then
+        -- Make last_y optional
+        if last_y ~= nil then
+            -- Don't let them move past the 2 first lines
+            if last_y > 1 then
+                -- If the last position was valid, move back to it
+                pane.Cursor.Loc.Y = last_y
+            end
+        elseif pane.Cursor.Loc.Y < 2 then
+            -- Put the cursor on the 1st item
+            pane.Cursor.Loc.Y = 2
+        end
+    else
+        last_y = last_y or 0
+    end
+
+    -- Puts the cursor back in bounds (if it isn't) for safety
+    pane.Cursor:Relocate()
+
+    -- Makes sure the cursor is visible (if it isn't)
+    -- (false) means no callback
+    pane:Center()
+
+    -- Highlight the current line where the cursor is
+    pane.Cursor:SelectLine()
+end
+
+-- Moves the cursor to the top in tree_view
+local function move_cursor_top(pane)
+    pane = pane or conf.tree_view
+
+    -- line to go to
+    if pane == conf.tree_view then
+        pane.Cursor.Loc.Y = 2
+    else
+        pane.Cursor.Loc.Y = 0
+    end
+
+    -- select the line after moving
+    select_line(pane)
+end
+
+
 local function refresh_structure()
     micro.Log('> refresh_structure()')
 
@@ -200,8 +247,63 @@ local function refresh_view()
     micro.Log('< refresh_view')
 end
 
+--- Helper function to open a side panel with our navigation bar.
+local function open_tree(pane)
+    micro.Log('> nvb_open_tree('..pane.Buf:GetName()..'/'..tostring(pane)..')')
+    local main_view = pane
+
+    conf = NavBufConf(main_view)
+
+    micro.Log('  conf: '..tostring(conf))
+
+    if not conf.language then
+        micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
+        return
+    end
+
+    -- Open a new Vsplit (on the very left)
+    pane:VSplitIndex(buffer.NewBuffer("", DISPLAY_NAME), false)
+
+    -- Save the new view so we can access it later
+    conf.tree_view = micro.CurPane()
+
+    -- Set the width of tree_view (in characters)
+    local size = get_option_among_range(main_view.Buf, 'navbar.treeview_size', SIZE_MIN)
+    conf.tree_view:ResizePane(size)
+
+    -- Set the type to unsavable
+    -- tree_view.Buf.Type = buffer.BTLog
+    conf.tree_view.Buf.Type.Scratch = true
+    conf.tree_view.Buf.Type.Readonly = true
+
+    -- Set the various display settings, but only on our view (by using
+    -- SetLocalOption instead of SetOption)
+
+    -- Set the softwrap value for treeview
+    local sw = get_option_among_list(main_view.Buf, 'navbar.softwrap', {true, false}, false)
+    conf.tree_view.Buf:SetOptionNative("softwrap", sw)
+
+    -- No line numbering
+    conf.tree_view.Buf:SetOptionNative("ruler", false)
+    -- Is this needed with new non-savable settings from being "vtLog"?
+    conf.tree_view.Buf:SetOptionNative("autosave", false)
+    -- Don't show the statusline to differentiate the view from normal views
+    conf.tree_view.Buf:SetOptionNative("statusformatr", "")
+    conf.tree_view.Buf:SetOptionNative("statusformatl", DISPLAY_NAME)
+    conf.tree_view.Buf:SetOptionNative("scrollbar", false)
+
+    -- Display the content
+    refresh_structure()
+    refresh_view(conf.main_view.Buf)
+
+    -- Move the cursor
+    move_cursor_top(conf.tree_view)
+
+    micro.Log('< nvb_open_tree')
+end
+
 --- Helper function to close the side panel containing our navigation bar.
-local function nvb_close_tree(pane)
+local function close_tree(pane)
     micro.Log('> nvb_close_tree('..tostring(pane)..')')
     if (conf ~= nil)  and (conf.tree_view ~= nil) then
         -- TODO: saved the list of closed items so that we can reuse it if we
@@ -213,52 +315,6 @@ local function nvb_close_tree(pane)
     micro.Log('< nvb_close_tree')
 end
 
-
--- Hightlights the line when you move the cursor up/down
-local function select_line(pane, last_y)
-    pane = pane or conf.tree_view
-
-    if pane == conf.tree_view then
-        -- Make last_y optional
-        if last_y ~= nil then
-            -- Don't let them move past the 2 first lines
-            if last_y > 1 then
-                -- If the last position was valid, move back to it
-                pane.Cursor.Loc.Y = last_y
-            end
-        elseif pane.Cursor.Loc.Y < 2 then
-            -- Put the cursor on the 1st item
-            pane.Cursor.Loc.Y = 2
-        end
-    else
-        last_y = last_y or 0
-    end
-
-    -- Puts the cursor back in bounds (if it isn't) for safety
-    pane.Cursor:Relocate()
-
-    -- Makes sure the cursor is visible (if it isn't)
-    -- (false) means no callback
-    pane:Center()
-
-    -- Highlight the current line where the cursor is
-    pane.Cursor:SelectLine()
-end
-
--- Moves the cursor to the top in tree_view
-local function move_cursor_top(pane)
-    pane = pane or conf.tree_view
-
-    -- line to go to
-    if pane == conf.tree_view then
-        pane.Cursor.Loc.Y = 2
-    else
-        pane.Cursor.Loc.Y = 0
-    end
-
-    -- select the line after moving
-    select_line(pane)
-end
 
 -------------------------------------------------------------------------------
 -- Shorthand functions for actions to reduce repeat code
@@ -362,7 +418,7 @@ end
 function preQuit(pane)
     micro.Log('> preQuit('..pane.Buf:GetName()..'/'..tostring(pane)..')')
     if pane == conf.main_view then
-        nvb_close_tree(pane)
+        close_tree(pane)
     end
     micro.Log('< preQuit')
 end
@@ -370,9 +426,7 @@ end
 -- Run when closing all
 function preQuitAll(pane)
     micro.Log('> preQuitAll('..pane.Buf:GetName()..'/'..tostring(pane)..')')
---[[
-    nvb_close_tree(conf.view_tree)
---]]
+    nvb_close_tree(pane)
     micro.Log('< preQuitAll')
 end
 
@@ -430,61 +484,6 @@ end
 -------------------------------------------------------------------------------
 -- NavBar Commands
 -------------------------------------------------------------------------------
-
---- Helper function to open a side panel with our navigation bar.
-local function nvb_open_tree(pane)
-    micro.Log('> nvb_open_tree('..pane.Buf:GetName()..'/'..tostring(pane)..')')
-    local main_view = pane
-
-    conf = NavBufConf(main_view)
-
-    micro.Log('  conf: '..tostring(conf))
-
-    if not conf.language then
-        micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
-        return
-    end
-
-    -- Open a new Vsplit (on the very left)
-    pane:VSplitIndex(buffer.NewBuffer("", DISPLAY_NAME), false)
-
-    -- Save the new view so we can access it later
-    conf.tree_view = micro.CurPane()
-
-    -- Set the width of tree_view (in characters)
-    local size = get_option_among_range(main_view.Buf, 'navbar.treeview_size', SIZE_MIN)
-    conf.tree_view:ResizePane(size)
-
-    -- Set the type to unsavable
-    -- tree_view.Buf.Type = buffer.BTLog
-    conf.tree_view.Buf.Type.Scratch = true
-    conf.tree_view.Buf.Type.Readonly = true
-
-    -- Set the various display settings, but only on our view (by using
-    -- SetLocalOption instead of SetOption)
-
-    -- Set the softwrap value for treeview
-    local sw = get_option_among_list(main_view.Buf, 'navbar.softwrap', {true, false}, false)
-    conf.tree_view.Buf:SetOptionNative("softwrap", sw)
-
-    -- No line numbering
-    conf.tree_view.Buf:SetOptionNative("ruler", false)
-    -- Is this needed with new non-savable settings from being "vtLog"?
-    conf.tree_view.Buf:SetOptionNative("autosave", false)
-    -- Don't show the statusline to differentiate the view from normal views
-    conf.tree_view.Buf:SetOptionNative("statusformatr", "")
-    conf.tree_view.Buf:SetOptionNative("statusformatl", DISPLAY_NAME)
-    conf.tree_view.Buf:SetOptionNative("scrollbar", false)
-
-    -- Display the content
-    refresh_structure()
-    refresh_view(conf.main_view.Buf)
-
-    -- Move the cursor
-    move_cursor_top(conf.tree_view)
-
-    micro.Log('< nvb_open_tree')
-end
 
 --- Helper dummy function for debuging purpose
 local function local_do_nothing()
@@ -594,10 +593,10 @@ function toggle_tree()
     local pane
     if (conf == nil) or ((conf ~= nil) and (conf.tree_view == nil)) then
         pane = micro.CurPane()
-        nvb_open_tree(pane)
+        open_tree(pane)
     else
         pane = conf.main_view
-        nvb_close_tree(pane)
+        close_tree(pane)
     end
     micro.Log('< toggle_tree')
 end
@@ -645,7 +644,7 @@ function init()
     if open_on_start then
         -- Check for safety on the off-chance someone's init.lua breaks this
         if (conf == nil) then
-            nvb_open_tree(main_view)
+            open_tree(main_view)
             -- Puts the cursor back in the empty view that initially spawns
             -- This is so the cursor isn't sitting in the tree view at startup
             -- main_view:NextSplit()
