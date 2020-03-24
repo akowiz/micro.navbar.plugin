@@ -11,6 +11,7 @@ Currently, the languages supported are:
 
 - Python2
 - Python3
+- Lua
 
 To initiate the navbar, simply
 
@@ -21,3 +22,11 @@ Or run:
 ```
 > navbar
 ```
+
+In the navbar side windows, you can navigate using your keyboard or the mouse.
+
+Press '+' to open a closed node (or use command `nvb_open`).
+Press 'o' to open all closed nodes (or use command `nvb_open_all`).
+Press '-' to close an open node (or use command `nvb_close`).
+Press 'c' to close all open nodes (or use command `nvb_close_all`).
+Press ' ' to jump to the corresponding symbol in the main window (or use command `nvb_goto`).
