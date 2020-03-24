@@ -1,3 +1,5 @@
+--- @module navbar
+
 VERSION = "0.0.1"
 
 local nvb_path = "navbar/?.lua;"
@@ -25,10 +27,12 @@ local conf = nil
 
 -------------------------------------------------------------------------------
 
--- @type NavBufConf
+--- NavBufConf hold our configuration for the current buffer
+-- type NavBufConf
 local NavBufConf = gen.class()
 
 function NavBufConf:__init(main)
+    micro.Log('> NavBufconf:__init('..tostring(main)..')')
     self.main_view = main or nil
     self.tree_view = nil
     self.root = nil
@@ -37,10 +41,12 @@ function NavBufConf:__init(main)
     self.language = nil
 
     self:detect_language()
+    micro.Log('< NavBufconf:__init')
 end
 
 --- Detect the language in the main buffer, use filename if necessary.
 function NavBufConf:detect_language()
+    micro.Log('> NavBufconf:detect_language()')
     local ft = self.main_view.Buf:FileType()
     local fn = self.main_view.Buf:GetName()
 
@@ -49,19 +55,44 @@ function NavBufConf:detect_language()
     elseif (ft == 'lua') or ((ft == '') and (fn:ends_with('.lua'))) then
         self.language = 'lua'
     end
+    micro.Log('  set language to '..tostring(self.language))
+    micro.Log('< NavBufconf:detect_language')
 end
+
+--- Display the configuration in a string.
+function NavBufConf:__tostring()
+    ret = {}
+    table.insert(ret, 'main_view: '..tostring(self.main_view))
+    table.insert(ret, 'tree_view: '..tostring(self.tree_view))
+    table.insert(ret, 'language:  '..self.language)
+    table.insert(ret, 'closed:    '..gen.set_tostring(self.closed))
+    ret = table.concat(ret, ', ')
+    return ret
+end
+
+-- class
 
 -------------------------------------------------------------------------------
 
-
---- Retrieve the global option, validate it against a list and provide default if value is not in list.
--- @tparam string name Name of the global option.
+--- Retrieve an option, validate it against a list and provide default if value is not in list.
+-- @tparam Buffer buf A buffer or nil to retrieve a global option.
+-- @tparam string name Name of the setting.
 -- @tparam values table Table of valid values.
 -- @param default Default value to use if the current option is not in values (must be in values).
 -- @return A valid option.
-function get_option_among_list(name, values, default)
-    default = default or values[1]
+local function get_option_among_list(buf, name, values, default)
+    micro.Log('> get_option_among_list(buf='..tostring(buf)..' name='..name..' default='..tostring(default)..')')
     local current = config.GetGlobalOption(name)
+    micro.Log('  global option='..tostring(current))
+    if (buf ~= nil) and (buf.Settings ~= nil) then
+        local local_option = buf.Settings[name]
+        if local_option then
+            micro.Log('  buffer option='..tostring(local_option))
+            current = local_option
+        end
+    end
+
+    default = default or values[1]
     if current then
         if not gen.is_in(current, values) then
             if gen.is_in(default, values) then
@@ -71,16 +102,29 @@ function get_option_among_list(name, values, default)
             end
         end
     end
+    micro.Log('  return '..tostring(current))
+    micro.Log('< get_option_among_list')
     return current
 end
 
---- Retrieve the global option, validate it against a min and max, provide default if value is not in range.
--- @tparam string name Name of the global option.
+--- Retrieve an option, validate it against a min and max, provide default if value is not in range.
+-- @tparam Buffer buf A buffer or nil to retrieve a global option.
+-- @tparam string name Name of the setting.
 -- @tparam int lower Minimum value or nil if there is no minimum.
 -- @tparam int upper Maximum value or nil if there is no maximum.
 -- @treturn int A valid option.
-function get_option_among_range(name, lower, upper)
+local function get_option_among_range(buf, name, lower, upper)
+    micro.Log('> get_option_among_range(buf='..tostring(buf)..' name='..name..' lower='..tostring(lower)..' upper='..tostring(upper)..')')
     local current = config.GetGlobalOption(name)
+    micro.Log('  global option='..tostring(current))
+    if (buf ~= nil) and (buf.Settings ~= nil) then
+        local local_option = buf.Settings[name]
+        if local_option then
+            micro.Log('  buffer option='..tostring(local_option))
+            current = local_option
+        end
+    end
+
     if current then
         if     lower and (current < lower) then
             current = lower
@@ -88,10 +132,12 @@ function get_option_among_range(name, lower, upper)
             current = upper
         end
     end
+    micro.Log('  return '..tostring(current))
+    micro.Log('< get_option_among_range')
     return current
 end
 
-
+-------------------------------------------------------------------------------
 
 -- Clear out all stuff in Micro's messenger
 local function clear_messenger()
@@ -101,6 +147,7 @@ local function clear_messenger()
 end
 
 local function refresh_structure()
+    micro.Log('> refresh_structure()')
     conf:detect_language()
 
     if not conf.language then
@@ -116,11 +163,15 @@ local function refresh_structure()
     elseif conf.language == 'lua' then
         conf.root = lgl.export_structure(bytes)
     end
+    micro.Log('< refresh_structure()')
 end
 
+--- Return the content (string) of the tree view to be displayed.
 local function display_content()
-    local ttype  = get_option_among_list("navbar.treestyle", {'bare', 'ascii', 'box'})
-    local tspace = get_option_among_range("navbar.treestyle_spacing", 0, nil)
+    micro.Log('> display_content()')
+    local buf = conf.main_view.Buf
+    local ttype  = get_option_among_list(buf, "navbar.treestyle", {'bare', 'ascii', 'box'})
+    local tspace = get_option_among_range(bur, "navbar.treestyle_spacing", 0, nil)
 
     local tl_list = {}
     local display_text = {}
@@ -140,10 +191,12 @@ local function display_content()
     end
 
     local ret = table.concat(display_text, '\n')
+    micro.Log('< display_content')
     return ret
 end
 
 local function refresh_view(buf)
+    micro.Log('> display_content()')
     clear_messenger()
 
     local content = display_content()
@@ -157,7 +210,10 @@ local function refresh_view(buf)
     conf.tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), 'Symbols\n\n')
     conf.tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
     conf.tree_view:Tab():Resize()
+
+    micro.Log('< display_content()')
 end
+
 
 -- Hightlights the line when you move the cursor up/down
 local function select_line(pane, last_y)
@@ -190,13 +246,12 @@ local function select_line(pane, last_y)
     pane.Cursor:SelectLine()
 end
 
-
--- Moves the cursor to the ".." in tree_view
+-- Moves the cursor to the top in tree_view
 local function move_cursor_top(pane)
     pane = pane or conf.tree_view
 
     -- line to go to
-    if pane == tree_view then
+    if pane == conf.tree_view then
         pane.Cursor.Loc.Y = 2
     else
         pane.Cursor.Loc.Y = 0
@@ -206,148 +261,152 @@ local function move_cursor_top(pane)
     select_line(pane)
 end
 
+-------------------------------------------------------------------------------
+-- Shorthand functions for actions to reduce repeat code
+-------------------------------------------------------------------------------
+
 -- Move the cursor to the top, but don't allow the action
-local function aftermove_if_tree(view)
-    if view == conf.tree_view then
-        if view.Cursor.Loc.Y < 2 then
+local function aftermove_if_tree(pane)
+    if (conf ~= nil) and (pane == conf.tree_view) then
+        if pane.Cursor.Loc.Y < 2 then
             -- If it went past the "..", move back onto it
-            view.Cursor:DownN(2 - view.Cursor.Loc.Y)
+            pane.Cursor:DownN(2 - pane.Cursor.Loc.Y)
         end
-        select_line(view)
+        select_line(pane)
     end
 end
 
 -- Used to fail certain actions that we shouldn't allow on the tree_view
-local function false_if_tree(view)
-    if view == conf.tree_view then
+local function false_if_tree(pane)
+    if (conf ~= nil) and (pane == conf.tree_view) then
         return false
     end
 end
 
 -- Select the line at the cursor
-local function selectline_if_tree(view)
-    if view == conf.tree_view then
-        select_line(view)
+local function selectline_if_tree(pane)
+    if (conf ~= nil) and (pane == conf.tree_view) then
+        select_line(pane)
     end
 end
 
-local function clearselection_if_tree(view)
-    if view == conf.tree_view then
+local function clearselection_if_tree(pane)
+    if (conf ~= nil) and (pane == conf.tree_view) then
         -- Clear the selection when doing a find, so it doesn't copy the current line
-        view.Cursor:ResetSelection()
+        pane.Cursor:ResetSelection()
     end
 end
 
-function onCursorUp(view)
-    selectline_if_tree(view)
+-------------------------------------------------------------------------------
+
+-- Run while using ↑
+function onCursorUp(pane)
+    selectline_if_tree(pane)
 end
 
-function onCursorDown(view)
-    selectline_if_tree(view)
+-- Run while using ↓
+function onCursorDown(pane)
+    selectline_if_tree(pane)
 end
 
--- PageUp
-function onCursorPageUp(view)
-    aftermove_if_tree(view)
+-- Run while using PageUp
+function onCursorPageUp(pane)
+    aftermove_if_tree(pane)
 end
 
--- Ctrl-Up
-function onCursorStart(view)
-    aftermove_if_tree(view)
+-- Run while using Ctrl-Up
+function onCursorStart(pane)
+    aftermove_if_tree(pane)
 end
 
--- PageDown
-function onCursorPageDown(view)
-    selectline_if_tree(view)
+-- Run while using PageDown
+function onCursorPageDown(pane)
+    selectline_if_tree(pane)
 end
 
--- Ctrl-Down
-function onCursorEnd(view)
-    selectline_if_tree(view)
+-- Run while using Ctrl-Down
+function onCursorEnd(pane)
+    selectline_if_tree(pane)
 end
 
-function preFind(view)
+-- Run while opening a buffer panel
+function onBufPaneOpen(pane)
+    micro.Log('> onBufPaneOpen('..tostring(pane)..')')
+    -- FIXME: this is not working at the moment, weird behavior from micro
+
+    -- Retrieve the FileType 'openonstart' option.
+    local openonstart = get_option_from_list(pane, 'navbar.openonstart', {true, false}, false)
+
+    micro.Log('  conf is ' .. tostring(conf))
+    micro.Log('  pane name = ' .. pane.Buf:GetName())
+    micro.Log('  pane ft = ' .. pane.Buf:FileType())
+    micro.Log('  pane openonstart = ' .. tostring(openonstart))
+
+    if (conf == nil) and openonstart then
+        micro.Log('>>>')
+        toggle_tree()
+        -- this part is never displayed
+        micro.Log('<<<')
+    end
+    micro.Log('< onBufPaneOpen')
+end
+
+-- Run while saving the buffer.
+function onSave(pane)
+    micro.Log('> onSave('..tostring(pane)..')')
+    if (conf ~= nil) and (pane == conf.main_view) then
+        -- rebuild the content of the tree whenever we save the main buffer.
+        refresh_structure()
+    end
+    micro.Log('< onSave')
+end
+
+--- Run while using the find command.
+function onFind(pane)
+    -- FIXME: doesn't work for whatever reason
+    -- Select the whole line after a find, instead of just the input txt
+    selectline_if_tree(pane)
+end
+
+
+--- Preprocess the find command
+function preFind(pane)
     -- Since something is always selected, clear before a find
     -- Prevents copying the selection into the find input
-    clearselection_if_tree(view)
+    clearselection_if_tree(pane)
 end
 
-function preRune(view, rune)
-    local rune_open = config.GetGlobalOption("navbar.treeview_rune_open")
-    local rune_close = config.GetGlobalOption("navbar.treeview_rune_close")
-    local rune_goto = config.GetGlobalOption("navbar.treeview_rune_goto")
+--- Preprocess the rune (key pressed) in a pane.
+function preRune(pane, rune)
+    if (conf ~= nil) and (pane == conf.tree_view) then
 
-    if view ~= conf.tree_view then
-        return
-    else
+        local rune_open  = config.GetGlobalOption("navbar.treeview_rune_open")
+        local rune_close = config.GetGlobalOption("navbar.treeview_rune_close")
+        local rune_goto  = config.GetGlobalOption("navbar.treeview_rune_goto")
+
         if rune == rune_open then
-            nvb_node_open()
+            nvb_node_open(pane)
         elseif rune == rune_close then
-            nvb_node_close()
+            nvb_node_close(pane)
         elseif rune == rune_goto then
-            nvb_goto_line()
+            nvb_goto_line(pane)
         end
-        return false
+        return false -- no need to process any further with other plugins.
     end
 end
 
--- FIXME: doesn't work for whatever reason
-function onFind(view)
-    -- Select the whole line after a find, instead of just the input txt
-    selectline_if_tree(view)
-end
+-------------------------------------------------------------------------------
+-- NavBar Commands
+-------------------------------------------------------------------------------
 
-function nvb_goto_line()
-    if conf.tree_view ~= nil and (micro.CurPane() == conf.tree_view) then
-        local last_y = conf.tree_view.Cursor.Loc.Y
-        local node = conf.node_list[last_y - 1]
+--- Helper function to open a side panel with our navigation bar.
+local function nvb_open_tree(pane)
+    micro.Log('> nvb_open_tree('..tostring(pane)..')')
+    local main_view = pane
 
-        if node ~= false and node.line ~= -1 then
-            conf.main_view.Cursor.Loc.Y = node.line - 1
-            conf.main_view.Cursor:Relocate()
-            conf.main_view:Center()
-            conf.main_view.Cursor:SelectLine()
-            select_line(nil, last_y)
-        end
-    end
-end
+    conf = NavBufConf(main_view)
 
-function nvb_node_open()
-    if conf.tree_view ~= nil and (micro.CurPane() == conf.tree_view) then
-        local last_y = conf.tree_view.Cursor.Loc.Y
-        local node = conf.node_list[last_y - 1]
-
-        if node ~= false then
-            local abs_label = node:get_abs_label()
-            if conf.closed[abs_label] then
-                conf.closed[abs_label] = nil
-                refresh_view()
-                select_line(nil, last_y)
-            end
-        end
-    end
-end
-
-function nvb_node_close()
-    if conf.tree_view ~= nil and (micro.CurPane() == conf.tree_view) then
-        local last_y = conf.tree_view.Cursor.Loc.Y
-        local node = conf.node_list[last_y - 1]
-
-        if node ~= false then
-            local abs_label = node:get_abs_label()
-            if not conf.closed[abs_label] then
-                conf.closed[abs_label] = true
-                refresh_view()
-                select_line(nil, last_y)
-            end
-        end
-    end
-end
-
--- open_tree setup's the view
-local function open_tree()
-    -- Keep the configuration of the navbar for the current buffer.
-    conf = NavBufConf(micro.CurPane())
+    micro.Log('  conf: '..tostring(conf))
 
     if not conf.language then
         micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
@@ -355,13 +414,13 @@ local function open_tree()
     end
 
     -- Open a new Vsplit (on the very left)
-    micro.CurPane():VSplitIndex(buffer.NewBuffer("", DISPLAY_NAME), false)
+    pane:VSplitIndex(buffer.NewBuffer("", DISPLAY_NAME), false)
 
     -- Save the new view so we can access it later
     conf.tree_view = micro.CurPane()
 
     -- Set the width of tree_view (in characters)
-    local size = get_option_among_range('navbar.treeview_size', SIZE_MIN)
+    local size = get_option_among_range(main_view.Buf, 'navbar.treeview_size', SIZE_MIN)
     conf.tree_view:ResizePane(size)
 
     -- Set the type to unsavable
@@ -373,7 +432,7 @@ local function open_tree()
     -- SetLocalOption instead of SetOption)
 
     -- Set the softwrap value for treeview
-    local sw = get_option_among_list('navbar.softwrap', {true, false}, false)
+    local sw = get_option_among_list(main_view.Buf, 'navbar.softwrap', {true, false}, false)
     conf.tree_view.Buf:SetOptionNative("softwrap", sw)
 
     -- No line numbering
@@ -391,30 +450,111 @@ local function open_tree()
 
     -- Move the cursor
     move_cursor_top(conf.tree_view)
+
+    micro.Log('< nvb_open_tree')
 end
 
--- close_tree will close the tree plugin view and release memory.
-local function close_tree()
-    if tree_view ~= nil then
-        tree_view:Quit()
-        tree_view = nil
+--- Helper function to close the side panel containing our navigation bar.
+local function nvb_close_tree(pane)
+    micro.Log('> nvb_close_tree('..tostring(pane)..')')
+    if (conf ~= nil)  and (conf.tree_view ~= nil) then
+        -- TODO: saved the list of closed items so that we can reuse it if we
+        -- open the treeview again.
+        conf.tree_view:Quit()
+        conf = nil
         clear_messenger()
     end
+    micro.Log('< nvb_close_tree')
 end
 
--- toggle_tree will toggle the tree view visible (create) and hide (delete).
-function toggle_tree()
-    if tree_view == nil then
-        open_tree()
-    else
-        close_tree()
-    end
+--- Helper dummy function for debuging purpose
+local function local_do_nothing()
+    micro.Log('> local_do_nothing()')
+    micro.Log('< local_do_nothing')
 end
+
+--- Dummy Command for debugging purpose
+function global_do_nothing(pane)
+    micro.Log('> global_do_nothing()')
+    micro.Log('< global_do_nothing')
+end
+
+--- Command to jump in the main view to the item selected in the tree view.
+function nvb_goto_line(pane)
+    micro.Log('> nvb_goto_line('..tostring(pane)..')')
+    if (conf ~= nil) and (pane == conf.tree_view) then
+        local last_y = pane.Cursor.Loc.Y
+        local node = conf.node_list[last_y - 1]
+
+        if node ~= false and node.line ~= -1 then
+            conf.main_view.Cursor.Loc.Y = node.line - 1
+            conf.main_view.Cursor:Relocate()
+            conf.main_view:Center()
+            conf.main_view.Cursor:SelectLine()
+            select_line(pane, last_y)
+        end
+    end
+    micro.Log('< nvb_goto_line')
+end
+
+--- Command to open a previously closed node in our tree view.
+function nvb_node_open(pane)
+    micro.Log('> nvb_node_open('..tostring(pane)..')')
+    if (conf ~= nil) and (pane == conf.tree_view) then
+        local last_y = pane.Cursor.Loc.Y
+        local node = conf.node_list[last_y - 1]
+
+        if node ~= false then
+            local abs_label = node:get_abs_label()
+            if conf.closed[abs_label] then
+                conf.closed[abs_label] = nil
+                refresh_view()
+                select_line(pane, last_y)
+            end
+        end
+    end
+    micro.Log('< nvb_node_open')
+end
+
+--- Command to close a node with visible children in our tree view.
+function nvb_node_close(pane)
+    micro.Log('> nvb_node_close('..tostring(pane)..')')
+    if (conf ~= nil) and (pane == conf.tree_view) then
+        local last_y = pane.Cursor.Loc.Y
+        local node = conf.node_list[last_y - 1]
+
+        if node ~= false then
+            local abs_label = node:get_abs_label()
+            if not conf.closed[abs_label] then
+                conf.closed[abs_label] = true
+                refresh_view()
+                select_line(pane, last_y)
+            end
+        end
+    end
+    micro.Log('< nvb_node_close')
+end
+
+--- Command to toggle the side bar with our tree view.
+function toggle_tree()
+    micro.Log('> toggle_tree')
+    local pane
+    if (conf == nil) or ((conf ~= nil) and (conf.tree_view == nil)) then
+        pane = micro.CurPane()
+        nvb_open_tree(pane)
+    else
+        pane = conf.main_view
+        nvb_close_tree(pane)
+    end
+    micro.Log('< toggle_tree')
+end
+
+-------------------------------------------------------------------------------
 
 --- Initialize the navbar plugin.
 function init()
+    micro.Log('> init')
     config.AddRuntimeFile("navbar", config.RTHelp, "help/navbar.md")
-    config.TryBindKey("F5", "lua:navbar.toggle_tree", false)
     config.TryBindKey("Alt-n", "lua:navbar.toggle_tree", false)
 
     -- Lets the user have the filetree auto-open any time Micro is opened
@@ -440,28 +580,19 @@ function init()
     -- NOTE: This must be below the syntax load command or coloring won't work
     -- Just auto-open if the option is enabled
     -- This will run when the plugin first loads
-    local open_on_start = get_option_among_list('navbar.openonstart', {true, false}, false)
+    local main_view = micro.CurPane()
+    local open_on_start = get_option_among_list(main_view.Buf, 'navbar.openonstart', {true, false}, false)
     if open_on_start then
         -- Check for safety on the off-chance someone's init.lua breaks this
-        if tree_view == nil then
-            open_tree()
+        if (conf == nil) then
+            nvb_open_tree(main_view)
             -- Puts the cursor back in the empty view that initially spawns
             -- This is so the cursor isn't sitting in the tree view at startup
-            micro.CurPane():NextSplit()
+            -- main_view:NextSplit()
         else
             -- Log error so they can fix it
             micro.Log("Warning: navbar.openonstart was enabled, but somehow the tree was already open so the option was ignored.")
         end
     end
+    micro.Log('< init')
 end
-
---- Refresh the content of the tree whenever we save the original buffer.
--- @tparam bufpane bp The buffer panel object.
--- @treturn bool false
-function onSave(bp)
-    if tree_view ~= nil then
-        refresh_structure()
-    end
-    return false
-end
-
