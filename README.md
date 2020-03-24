@@ -71,7 +71,7 @@ BUGS
 ----
 - When several tabs are open, opening navbar change the name of the tab. If several navbar are running, more sidebar are open, it gets messy quickly.
 - Error if micro is not run from the development folder (this is a big issue) because extra modules (generic, etc.) can not be found.
-- When closing all nodes in a lua program, the Objects root got zapped.
+- When closing all nodes in a lua program, the Objects root got zapped, and reapered only when main buffer is saved.
 
 TODO
 ----
