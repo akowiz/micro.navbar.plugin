@@ -181,7 +181,7 @@ local function display_content()
     return ret
 end
 
-local function refresh_view(buf)
+local function refresh_view()
     micro.Log('> refresh_view()')
     clear_messenger()
 
@@ -198,6 +198,19 @@ local function refresh_view(buf)
     conf.tree_view:Tab():Resize()
 
     micro.Log('< refresh_view')
+end
+
+--- Helper function to close the side panel containing our navigation bar.
+local function nvb_close_tree(pane)
+    micro.Log('> nvb_close_tree('..tostring(pane)..')')
+    if (conf ~= nil)  and (conf.tree_view ~= nil) then
+        -- TODO: saved the list of closed items so that we can reuse it if we
+        -- open the treeview again.
+        conf.tree_view:Quit()
+        conf.tree_view = nil
+        clear_messenger()
+    end
+    micro.Log('< nvb_close_tree')
 end
 
 
@@ -345,6 +358,24 @@ function onBufPaneOpen(pane)
     micro.Log('< onBufPaneOpen')
 end
 
+-- Run when closing the main buffer
+function preQuit(pane)
+    micro.Log('> preQuit('..pane.Buf:GetName()..'/'..tostring(pane)..')')
+    if pane == conf.main_view then
+        nvb_close_tree(pane)
+    end
+    micro.Log('< preQuit')
+end
+
+-- Run when closing all
+function preQuitAll(pane)
+    micro.Log('> preQuitAll('..pane.Buf:GetName()..'/'..tostring(pane)..')')
+--[[
+    nvb_close_tree(conf.view_tree)
+--]]
+    micro.Log('< preQuitAll')
+end
+
 -- Run while saving the buffer.
 function onSave(pane)
     micro.Log('> onSave('..tostring(pane)..')')
@@ -453,19 +484,6 @@ local function nvb_open_tree(pane)
     move_cursor_top(conf.tree_view)
 
     micro.Log('< nvb_open_tree')
-end
-
---- Helper function to close the side panel containing our navigation bar.
-local function nvb_close_tree(pane)
-    micro.Log('> nvb_close_tree('..tostring(pane)..')')
-    if (conf ~= nil)  and (conf.tree_view ~= nil) then
-        -- TODO: saved the list of closed items so that we can reuse it if we
-        -- open the treeview again.
-        conf.tree_view:Quit()
-        conf = nil
-        clear_messenger()
-    end
-    micro.Log('< nvb_close_tree')
 end
 
 --- Helper dummy function for debuging purpose
