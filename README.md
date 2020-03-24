@@ -69,11 +69,11 @@ BUGS
 ----
 - When several tabs are open, opening navbar change the name of the tab. If several navbar are running, more sidebar are open, it gets messy quickly.
 - Error if micro is not run from the development folder (this is a big issue) because extra modules (generic, etc.) can not be found.
+- When we remove/add lines in the main_window, the nvb_goto_line numbers are not updated and are wrong, maybe we should rebuild the whole list after all instead of disconecting display from build.
 
 TODO
 ----
 - Add ability to save the open/close status in between sessions (using json to store the data?)
-- Add proper documentation to navbar.
 - When refreshing the view, we rebuild the strcuture tree from scratch. We should do it only when we save the buffer.
 - We need to keep the configuration of the side bp:ID() (buffer + main buffer and tabs) somewhere so that we can use it for updates (avoid opening a side buffer for a side buffer, etc.).
 - Write a proper parser to extract objects, classes, functions, variables, constants with depth
