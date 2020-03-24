@@ -58,7 +58,9 @@ Settings
 - treestyle_spacing: int (0, 1, etc.), the number of extra-characters to use for the tree branch. Default to 0.
 - softwrap: bool (true or false), set to true to use wrapping in the treeview window. Default to false.
 - treeview_rune_open: string (single letter), the key to use in the tree_view to open a node that is closed. Default to '+'.
+- treeview_rune_open_all: string (single letter), the key to use in the tree_view to open all nodes. Default to 'o'.
 - treeview_rune_close: string (single letter), the key to use in the tree_view to open a node that is closed. Default to '-'.
+- treeview_rune_close_all: string (single letter), the key to use in the tree_view to close all nodes. Default to 'c'.
 - treeview_rune_goto: string (single letter), the key to use in the tree_view to move the cursor in the main_view to the corresponding item. Default to ' '.
 
 Notes
