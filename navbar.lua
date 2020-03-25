@@ -13,6 +13,8 @@ local config = import("micro/config")
 local util   = import("micro/util")
 local buffer = import("micro/buffer")
 
+micro.Log('package.path: '..package.path)
+
 
 local gen = require('generic')
 local lgp = require('lang_python')
@@ -24,6 +26,7 @@ local SIZE_MIN = 15
 
 local conf = nil
 local init_started = false
+
 
 -------------------------------------------------------------------------------
 
@@ -387,11 +390,15 @@ end
 -- Run while opening a buffer panel (when micro already running)
 function onBufferOpen(buf)
     micro.Log('> onBufferOpen('..buf:GetName()..'/'..tostring(buf)..')')
---[[
+
     -- Note: it is very important to wait until init has started to run,
     -- because micro does some funny things with buffers at startup.
     if init_started then
-
+        local main_view = micro.CurPane()
+        micro.Log('  CurPane: '..tostring(main_view))
+        micro.Log('  CurPane.Buf: '..tostring(main_view.Buf))
+        micro.Log('  CurPane.Buf:GetName(): '..main_view.Buf:GetName())
+--[[
         -- Retrieve the FileType 'openonstart' option.
         local openonstart = get_option_among_list(buf, 'navbar.openonstart', {true, false}, false)
 
@@ -401,11 +408,11 @@ function onBufferOpen(buf)
         micro.Log('  buffer openonstart = ' .. tostring(openonstart))
 
         if (conf == nil) and openonstart then
-            toggle_tree()
+            toggle_tree(main_view)
         end
+--]]
 
     end
---]]
     micro.Log('< onBufferOpen')
 end
 
@@ -590,11 +597,10 @@ function nvb_node_close_all(pane)
 end
 
 --- Command to toggle the side bar with our tree view.
-function toggle_tree()
+function toggle_tree(pane)
     micro.Log('> toggle_tree')
-    local pane
     if (conf == nil) or ((conf ~= nil) and (conf.tree_view == nil)) then
-        pane = micro.CurPane()
+        pane = pane or micro.CurPane()
         open_tree(pane)
     else
         pane = conf.main_view
