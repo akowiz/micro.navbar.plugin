@@ -1,6 +1,6 @@
 --- @module navbar.lang_python
 
-local nvb_path = "./navbar/"
+local nvb_path = os.getenv("HOME") .. '/.config/micro/plug/navbar/'
 if not string.find(package.path, nvb_path) then
     package.path = nvb_path .. "?.lua;" .. package.path
 end
