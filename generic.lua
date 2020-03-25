@@ -86,7 +86,27 @@ function gen.set_tostring(set)
     return table.concat(tab, ', ')
 end
 
+--- Copy (deep copy) a table.
+-- Note: works for all lua5 versions.
+-- @tparam table list The list to copy.
+-- @treturn table A copy of the original table.
+function gen.table_deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[gen.table_deepcopy(orig_key)] = gen.table_deepcopy(orig_value)
+        end
+        setmetatable(copy, gen.table_deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 --- Clone/Copy a list (table)
+-- Note: only works for lua5.2 and above
 -- @tparam table list The list to clone.
 function gen.table_clone(list)
   return { table.unpack(list) }
