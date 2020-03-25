@@ -2,7 +2,7 @@
 
 VERSION = "0.0.1"
 
-local nvb_path = "/home/sylvain/.config/micro/plug/navbar/"
+local nvb_path = "./navbar/"
 if not string.find(package.path, nvb_path) then
     package.path = nvb_path .. "?.lua;" .. package.path
 end
