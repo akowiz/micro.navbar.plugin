@@ -1,8 +1,8 @@
 --- @module navbar.lang_python
 
-local nvb_path = "navbar/?.lua;"
+local nvb_path = "/home/sylvain/.config/micro/plug/navbar/"
 if not string.find(package.path, nvb_path) then
-    package.path = nvb_path .. package.path
+    package.path = nvb_path .. "?.lua;" .. package.path
 end
 
 local lgp = {}

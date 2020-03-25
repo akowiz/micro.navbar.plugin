@@ -2,11 +2,10 @@
 
 VERSION = "0.0.1"
 
-local nvb_path = "navbar/?.lua;"
-if not string.find(package.path, "navbar") then
-    package.path = nvb_path .. package.path
+local nvb_path = "/home/sylvain/.config/micro/plug/navbar/"
+if not string.find(package.path, nvb_path) then
+    package.path = nvb_path .. "?.lua;" .. package.path
 end
-
 
 local micro  = import("micro")
 local config = import("micro/config")
@@ -14,7 +13,6 @@ local util   = import("micro/util")
 local buffer = import("micro/buffer")
 
 micro.Log('package.path: '..package.path)
-
 
 local gen = require('generic')
 local lgp = require('lang_python')
