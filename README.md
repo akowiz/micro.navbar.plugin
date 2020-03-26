@@ -72,5 +72,6 @@ BUGS
 
 TODO
 ----
+- Replace open/close node command by a toggle command with 't' (because '+' requires shift).
 - Add ability to save the open/close status in between sessions (using json to store the data?)
 - Write a proper parser to extract objects, classes, functions, variables, constants with depth

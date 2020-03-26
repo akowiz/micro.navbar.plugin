@@ -564,6 +564,7 @@ function preRune(pane, rune)
     local conf = treeviews[pane_id]
 
     if conf then
+        local rune_toggle = config.GetGlobalOption("navbar.treeview_rune_toggle")
         local rune_open  = config.GetGlobalOption("navbar.treeview_rune_open")
         local rune_close = config.GetGlobalOption("navbar.treeview_rune_close")
         local rune_goto  = config.GetGlobalOption("navbar.treeview_rune_goto")
@@ -572,6 +573,8 @@ function preRune(pane, rune)
 
         if rune == rune_goto then
             nvb_goto_line(pane)
+        elseif rune == rune_toggle then
+            nvb_node_toggle(pane)
         elseif rune == rune_open then
             nvb_node_open(pane)
         elseif rune == rune_open_all then
@@ -699,6 +702,32 @@ function nvb_node_close_all(pane)
     micro.Log('< nvb_node_close_all')
 end
 
+--- Command to toggle a node between closed and open
+function nvb_node_toggle(pane)
+    micro.Log('> toggle_node('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+    if conf then
+        local last_y = pane.Cursor.Loc.Y
+        local node = conf.node_list[last_y - 1]
+
+        if node then
+            local abs_label = node:get_abs_label()
+            if not conf.closed[abs_label] then
+                conf.closed[abs_label] = true
+            else
+                conf.closed[abs_label] = nil
+            end
+            refresh_view(pane)
+            select_line(pane, last_y)
+        end
+
+    end
+
+    micro.Log('< toggle_node')
+end
+
 --- Command to toggle the side bar with our tree view.
 function toggle_tree(pane)
     micro.Log('> toggle_tree('..nvb_str(pane)..')')
@@ -732,16 +761,19 @@ function init()
     config.RegisterCommonOption("navbar", "treestyle_spacing", 0)
     config.RegisterCommonOption("navbar", "softwrap", false)
     config.RegisterCommonOption("navbar", "treeview_size", 25)
+    config.RegisterCommonOption("navbar", "treeview_rune_toggle", ' ')
     config.RegisterCommonOption("navbar", "treeview_rune_open", '+')
     config.RegisterCommonOption("navbar", "treeview_rune_open_all", 'o')
     config.RegisterCommonOption("navbar", "treeview_rune_close", '-')
     config.RegisterCommonOption("navbar", "treeview_rune_close_all", 'c')
-    config.RegisterCommonOption("navbar", "treeview_rune_goto", ' ')
+    config.RegisterCommonOption("navbar", "treeview_rune_goto", 'g')
 
     -- Open/close the tree view
     config.MakeCommand("navbar", toggle_tree, config.NoComplete)
     -- Goto corresponding line
     config.MakeCommand("nvb_goto", nvb_goto_line, config.NoComplete)
+    -- Close an open node
+    config.MakeCommand("nvb_toggle", nvb_node_toggle, config.NoComplete)
     -- Close an open node
     config.MakeCommand("nvb_close", nvb_node_close, config.NoComplete)
     -- Close all open nodes
