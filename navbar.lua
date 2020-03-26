@@ -12,7 +12,6 @@ local config = import("micro/config")
 local util   = import("micro/util")
 local buffer = import("micro/buffer")
 
-micro.Log('package.path: '..package.path)
 
 local gen = require('generic')
 local lgp = require('lang_python')
@@ -21,19 +20,35 @@ local lgl = require('lang_lua')
 local DISPLAY_NAME = 'navbar'
 local SIZE_MIN = 15
 
-
-local conf = nil
+local mainviews = {} -- table of NavBufConf objects indexed by nvb_str(main_view)
+local treeviews = {} -- table of NavBufConf objects indexes by nvb_str(tree_view)
 local init_started = false
 
 
 -------------------------------------------------------------------------------
+
+local function nvb_str(pane)
+    local ret = 'nil'
+    if pane then
+        ret = pane:ID()..':'..pane.Buf:GetName()
+    end
+    return ret
+end
+
+local function buf_str(buf)
+    ret = 'buf=nil'
+    if buf then
+        ret = 'buf='..buf:GetName()
+    end
+    return ret
+end
 
 --- NavBufConf hold our configuration for the current buffer
 -- type NavBufConf
 local NavBufConf = gen.class()
 
 function NavBufConf:__init(main)
-    micro.Log('> NavBufConf:__init('..tostring(main)..')')
+    micro.Log('> NavBufConf:__init('..nvb_str(main)..')')
 
     self.main_view = main or nil
     self.tree_view = nil
@@ -52,8 +67,8 @@ end
 --- Display the configuration in a string.
 function NavBufConf:__tostring()
     ret = {}
-    table.insert(ret, 'main_view: '..tostring(self.main_view))
-    table.insert(ret, 'tree_view: '..tostring(self.tree_view))
+    table.insert(ret, 'main_view: '..nvb_str(self.main_view))
+    table.insert(ret, 'tree_view: '..nvb_str(self.tree_view))
     table.insert(ret, 'language:  '..tostring(self.language))
     table.insert(ret, 'closed:    '..gen.set_tostring(self.closed))
     ret = table.concat(ret, ', ')
@@ -71,12 +86,12 @@ end
 -- @param default Default value to use if the current option is not in values (must be in values).
 -- @return A valid option.
 local function get_option_among_list(buf, name, values, default)
-    micro.Log('> get_option_among_list(buf='..tostring(buf)..' name='..name..' default='..tostring(default)..')')
+    micro.Log('> get_option_among_list('..buf_str(buf)..' name='..name..' default='..tostring(default)..')')
     local current = config.GetGlobalOption(name)
-    micro.Log('  global option='..tostring(current))
+    -- micro.Log('  global option='..tostring(current))
     if (buf ~= nil) then
         local local_option = buf.Settings[name]
-        micro.Log('  local option='..tostring(local_option))
+        -- micro.Log('  local option='..tostring(local_option))
         current = local_option
     end
 
@@ -102,13 +117,13 @@ end
 -- @tparam int upper Maximum value or nil if there is no maximum.
 -- @treturn int A valid option.
 local function get_option_among_range(buf, name, lower, upper)
-    micro.Log('> get_option_among_range(buf='..tostring(buf)..' name='..name..' lower='..tostring(lower)..' upper='..tostring(upper)..')')
+    micro.Log('> get_option_among_range('..buf_str(buf)..' name='..name..' lower='..tostring(lower)..' upper='..tostring(upper)..')')
     local current = config.GetGlobalOption(name)
-    micro.Log('  global option='..tostring(current))
+    -- micro.Log('  global option='..tostring(current))
     if (buf ~= nil) and (buf.Settings ~= nil) then
         local local_option = buf.Settings[name]
         if local_option then
-            micro.Log('  buffer option='..tostring(local_option))
+            -- micro.Log('  buffer option='..tostring(local_option))
             current = local_option
         end
     end
@@ -136,9 +151,11 @@ end
 
 -- Hightlights the line when you move the cursor up/down
 local function select_line(pane, last_y)
-    pane = pane or conf.tree_view
 
-    if pane == conf.tree_view then
+    local tab_id = micro.CurTab():ID()
+    local conf = treeviews[tab_id]
+
+    if conf then
         -- Make last_y optional
         if last_y ~= nil then
             -- Don't let them move past the 2 first lines
@@ -167,10 +184,11 @@ end
 
 -- Moves the cursor to the top in tree_view
 local function move_cursor_top(pane)
-    pane = pane or conf.tree_view
+    local pane_id = tostring(pane)
+    local conf = treeviews[pane_id]
 
     -- line to go to
-    if pane == conf.tree_view then
+    if conf then
         pane.Cursor.Loc.Y = 2
     else
         pane.Cursor.Loc.Y = 0
@@ -181,10 +199,13 @@ local function move_cursor_top(pane)
 end
 
 
-local function refresh_structure()
-    micro.Log('> refresh_structure()')
+local function refresh_structure(pane)
+    micro.Log('> refresh_structure('..nvb_str(pane)..')')
 
-    if not conf.language then
+    local pane_id = nvb_str(pane)
+    local conf = mainviews[pane_id] or treeviews[pane_id]
+
+    if (not conf) or (conf and not conf.language) then
         micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
         return
     end
@@ -201,8 +222,12 @@ local function refresh_structure()
 end
 
 --- Return the content (string) of the tree view to be displayed.
-local function display_content()
-    micro.Log('> display_content()')
+local function display_content(pane)
+    micro.Log('> display_content('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = mainviews[pane_id] or treeviews[pane_id]
+
     local buf = conf.main_view.Buf
     local ttype  = get_option_among_list(buf, "navbar.treestyle", {'bare', 'ascii', 'box'})
     local tspace = get_option_among_range(bur, "navbar.treestyle_spacing", 0, nil)
@@ -229,11 +254,14 @@ local function display_content()
     return ret
 end
 
-local function refresh_view()
-    micro.Log('> refresh_view()')
+local function refresh_view(pane)
+    micro.Log('> refresh_view('..nvb_str(pane)..')')
     clear_messenger()
 
-    local content = display_content()
+    local pane_id = nvb_str(pane)
+    local conf = mainviews[pane_id] or treeviews[pane_id]
+
+    local content = display_content(pane)
 
     -- delete everything in the tree_view
     conf.tree_view.Buf.EventHandler:Remove(
@@ -250,23 +278,28 @@ end
 
 --- Helper function to open a side panel with our navigation bar.
 local function open_tree(pane)
-    micro.Log('> nvb_open_tree('..pane.Buf:GetName()..'/'..tostring(pane)..')')
+    micro.Log('> open_tree('..nvb_str(pane)..')')
+
     local main_view = pane
+    local main_id = nvb_str(main_view)
 
-    conf = NavBufConf(main_view)
+    local conf = NavBufConf(main_view)
+    mainviews[main_id] = conf
 
-    micro.Log('  conf: '..tostring(conf))
-
+    -- FIXME: could language be '' instead of nil ?
+    micro.Log('  conf.lang= '..tostring(conf.language))
     if not conf.language then
         micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
         return
     end
 
     -- Open a new Vsplit (on the very left)
-    pane:VSplitIndex(buffer.NewBuffer("", DISPLAY_NAME), false)
+    local name = main_view.Buf:GetName()
+    local tree_pane = pane:VSplitIndex(buffer.NewBuffer("", name..'~'), false)
 
     -- Save the new view so we can access it later
-    conf.tree_view = micro.CurPane()
+    conf.tree_view = tree_pane
+    treeviews[nvb_str(tree_pane)] = conf
 
     -- Set the width of tree_view (in characters)
     local size = get_option_among_range(main_view.Buf, 'navbar.treeview_size', SIZE_MIN)
@@ -294,26 +327,40 @@ local function open_tree(pane)
     conf.tree_view.Buf:SetOptionNative("scrollbar", false)
 
     -- Display the content
-    refresh_structure()
-    refresh_view(conf.main_view.Buf)
+    refresh_structure(main_view)
+    refresh_view(main_view)
 
     -- Move the cursor
     move_cursor_top(conf.tree_view)
 
-    micro.Log('< nvb_open_tree')
+    for k, cnf in pairs(mainviews) do
+        micro.Log('  mainviews['..k..']: '..tostring(cnf))
+    end
+    for k, cnf in pairs(treeviews) do
+        micro.Log('  treeviews['..k..']: '..tostring(cnf))
+    end
+
+    micro.Log('< open_tree')
 end
 
 --- Helper function to close the side panel containing our navigation bar.
 local function close_tree(pane)
-    micro.Log('> nvb_close_tree('..tostring(pane)..')')
-    if (conf ~= nil)  and (conf.tree_view ~= nil) then
+    micro.Log('> close_tree('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = mainviews[pane_id] or treeviews[pane_id]
+    if conf then
         -- TODO: saved the list of closed items so that we can reuse it if we
         -- open the treeview again.
-        conf.tree_view:Quit()
-        conf.tree_view = nil
+        if conf.tree_view then
+            treeviews[nvb_str(conf.tree_view)] = nil
+            conf.tree_view:Quit()
+            conf.tree_view = nil
+        end
         clear_messenger()
     end
-    micro.Log('< nvb_close_tree')
+
+    micro.Log('< close_tree')
 end
 
 
@@ -323,7 +370,10 @@ end
 
 -- Move the cursor to the top, but don't allow the action
 local function aftermove_if_tree(pane)
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+
+    if conf then
         if pane.Cursor.Loc.Y < 2 then
             -- If it went past the "..", move back onto it
             pane.Cursor:DownN(2 - pane.Cursor.Loc.Y)
@@ -334,20 +384,29 @@ end
 
 -- Used to fail certain actions that we shouldn't allow on the tree_view
 local function false_if_tree(pane)
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+
+    if conf then
         return false
     end
 end
 
 -- Select the line at the cursor
 local function selectline_if_tree(pane)
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+
+    if conf then
         select_line(pane)
     end
 end
 
 local function clearselection_if_tree(pane)
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+
+    if conf then
         -- Clear the selection when doing a find, so it doesn't copy the current line
         pane.Cursor:ResetSelection()
     end
@@ -387,27 +446,33 @@ end
 
 -- Run while opening a buffer panel (when micro already running)
 function onBufferOpen(buf)
-    micro.Log('> onBufferOpen('..buf:GetName()..'/'..tostring(buf)..')')
+    micro.Log('> onBufferOpen('..buf_str(buf)..')')
 
     -- Note: it is very important to wait until init has started to run,
     -- because micro does some funny things with buffers at startup.
     if init_started then
-        local main_view = micro.CurPane()
-        micro.Log('  CurPane: '..tostring(main_view))
-        micro.Log('  CurPane.Buf: '..tostring(main_view.Buf))
-        micro.Log('  CurPane.Buf:GetName(): '..main_view.Buf:GetName())
---[[
+        -- local tab_id = micro.GetTab():ID()
+        -- pane_id = tab_id..':'..buf:GetName()
+--
+        -- local conf = mainviews[pane_id]
+
+
+        -- local main_view = micro.CurPane()
+        -- micro.Log('  CurPane: '..tostring(main_view))
+        -- micro.Log('  CurPane.Buf: '..tostring(main_view.Buf))
+        -- micro.Log('  CurPane.Buf:GetName(): '..main_view.Buf:GetName())
+---[[
         -- Retrieve the FileType 'openonstart' option.
         local openonstart = get_option_among_list(buf, 'navbar.openonstart', {true, false}, false)
 
-        micro.Log('  conf is ' .. tostring(conf))
-        micro.Log('  buffer name = ' .. buf:GetName())
-        micro.Log('  buffer ft = ' .. buf:FileType())
-        micro.Log('  buffer openonstart = ' .. tostring(openonstart))
+        -- micro.Log('  conf is ' .. tostring(conf))
+        -- micro.Log('  buffer name = ' .. buf:GetName())
+        -- micro.Log('  buffer ft = ' .. buf:FileType())
+        -- micro.Log('  buffer openonstart = ' .. tostring(openonstart))
 
-        if (conf == nil) and openonstart then
-            toggle_tree(main_view)
-        end
+        -- if not conf and openonstart then
+            -- toggle_tree()
+        -- end
 --]]
 
     end
@@ -415,36 +480,48 @@ function onBufferOpen(buf)
 end
 
 function onBufPaneOpen(pane)
-    micro.Log('> onBufPaneOpen('..pane.Buf:GetName()..'/'..tostring(pane)..')')
+    micro.Log('> onBufPaneOpen('..nvb_str(pane)..')')
     micro.Log('< onBufPaneOpen')
 end
 
 -- Run when closing the main buffer
 function preQuit(pane)
-    micro.Log('> preQuit('..pane.Buf:GetName()..'/'..tostring(pane)..')')
-    if (conf ~= nil) and (pane == conf.main_view) then
+    micro.Log('> preQuit('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = mainviews[pane_id]
+    if conf then
         close_tree(pane)
     end
+
     micro.Log('< preQuit')
 end
 
 -- Run when closing all
 function preQuitAll(pane)
-    micro.Log('> preQuitAll('..pane.Buf:GetName()..'/'..tostring(pane)..')')
-    if (conf ~= nil) then
+    micro.Log('> preQuitAll('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = mainviews[pane_id]
+    if conf then
         close_tree(pane)
     end
+
     micro.Log('< preQuitAll')
 end
 
 -- Run while saving the buffer.
 function onSave(pane)
-    micro.Log('> onSave('..tostring(pane)..')')
-    if (conf ~= nil) and (pane == conf.main_view) then
+    micro.Log('> onSave('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = mainviews[pane_id]
+    if conf then
         -- rebuild the content of the tree whenever we save the main buffer.
-        refresh_structure()
-        refresh_view()
+        refresh_structure(pane)
+        refresh_view(pane)
     end
+
     micro.Log('< onSave')
 end
 
@@ -465,8 +542,10 @@ end
 
 --- Preprocess the rune (key pressed) in a pane.
 function preRune(pane, rune)
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
 
+    if conf then
         local rune_open  = config.GetGlobalOption("navbar.treeview_rune_open")
         local rune_close = config.GetGlobalOption("navbar.treeview_rune_close")
         local rune_goto  = config.GetGlobalOption("navbar.treeview_rune_goto")
@@ -492,22 +571,13 @@ end
 -- NavBar Commands
 -------------------------------------------------------------------------------
 
---- Helper dummy function for debuging purpose
-local function local_do_nothing()
-    micro.Log('> local_do_nothing()')
-    micro.Log('< local_do_nothing')
-end
-
---- Dummy Command for debugging purpose
-function global_do_nothing(pane)
-    micro.Log('> global_do_nothing()')
-    micro.Log('< global_do_nothing')
-end
-
 --- Command to jump in the main view to the item selected in the tree view.
 function nvb_goto_line(pane)
-    micro.Log('> nvb_goto_line('..tostring(pane)..')')
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    micro.Log('> nvb_goto_line('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+    if conf then
         local last_y = pane.Cursor.Loc.Y
         local node = conf.node_list[last_y - 1]
 
@@ -519,13 +589,17 @@ function nvb_goto_line(pane)
             select_line(pane, last_y)
         end
     end
+
     micro.Log('< nvb_goto_line')
 end
 
 --- Command to open a previously closed node in our tree view.
 function nvb_node_open(pane)
-    micro.Log('> nvb_node_open('..tostring(pane)..')')
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    micro.Log('> nvb_node_open('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+    if conf then
         local last_y = pane.Cursor.Loc.Y
         local node = conf.node_list[last_y - 1]
 
@@ -533,30 +607,38 @@ function nvb_node_open(pane)
             local abs_label = node:get_abs_label()
             if conf.closed[abs_label] then
                 conf.closed[abs_label] = nil
-                refresh_view()
+                refresh_view(pane)
                 select_line(pane, last_y)
             end
         end
     end
+
     micro.Log('< nvb_node_open')
 end
 
 --- Command to open all previously closed nodes in our tree view.
 function nvb_node_open_all(pane)
-    micro.Log('> nvb_node_open_all('..tostring(pane)..')')
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    micro.Log('> nvb_node_open_all('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+    if conf then
         local last_y = 2
         conf.closed = {}
-        refresh_view()
+        refresh_view(pane)
         select_line(pane, last_y)
     end
+
     micro.Log('< nvb_node_open_all')
 end
 
 --- Command to close a node with visible children in our tree view.
 function nvb_node_close(pane)
-    micro.Log('> nvb_node_close('..tostring(pane)..')')
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    micro.Log('> nvb_node_close('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+    if conf then
         local last_y = pane.Cursor.Loc.Y
         local node = conf.node_list[last_y - 1]
 
@@ -564,18 +646,22 @@ function nvb_node_close(pane)
             local abs_label = node:get_abs_label()
             if not conf.closed[abs_label] then
                 conf.closed[abs_label] = true
-                refresh_view()
+                refresh_view(pane)
                 select_line(pane, last_y)
             end
         end
     end
+
     micro.Log('< nvb_node_close')
 end
 
 --- Command to close all node with visible children in our tree view.
 function nvb_node_close_all(pane)
-    micro.Log('> nvb_node_close_all('..tostring(pane)..')')
-    if (conf ~= nil) and (pane == conf.tree_view) then
+    micro.Log('> nvb_node_close_all('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+    if conf then
         local last_y = pane.Cursor.Loc.Y
 
         for _, node in ipairs(conf.node_list) do
@@ -588,22 +674,27 @@ function nvb_node_close_all(pane)
                 end
             end
         end
-        refresh_view()
+        refresh_view(pane)
         select_line(pane, last_y)
     end
+
     micro.Log('< nvb_node_close_all')
 end
 
 --- Command to toggle the side bar with our tree view.
 function toggle_tree(pane)
-    micro.Log('> toggle_tree')
-    if (conf == nil) or ((conf ~= nil) and (conf.tree_view == nil)) then
+    micro.Log('> toggle_tree('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = mainviews[pane_id] or treeviews[pane_id]
+    if not conf or (conf and (conf.tree_view == nil)) then
         pane = pane or micro.CurPane()
         open_tree(pane)
     else
         pane = conf.main_view
         close_tree(pane)
     end
+
     micro.Log('< toggle_tree')
 end
 
@@ -646,10 +737,12 @@ function init()
     -- Just auto-open if the option is enabled
     -- This will run when the plugin first loads
     local main_view = micro.CurPane()
+    local main_id = nvb_str(main_view)
     local open_on_start = get_option_among_list(main_view.Buf, 'navbar.openonstart', {true, false}, false)
     if open_on_start then
+        local conf = mainviews[main_id]
         -- Check for safety on the off-chance someone's init.lua breaks this
-        if (conf == nil) then
+        if not conf then
             open_tree(main_view)
             -- Puts the cursor back in the empty view that initially spawns
             -- This is so the cursor isn't sitting in the tree view at startup
