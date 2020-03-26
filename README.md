@@ -69,8 +69,6 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 BUGS
 ----
-- When closing top node (classes, objects), the cursor is sent to the end instead of kept at 2.
-- When opening closed function, the cursor is sent to the end.
 - When closing all nodes in a lua program, the Objects root got zapped, and reapered only when main buffer is saved.
 - When saving the navbar buffer, instead of displaying an error we should save the main buffer.
 
