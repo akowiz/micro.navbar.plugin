@@ -312,7 +312,7 @@ function tree.NodeBase:to_treelines(stylename, spacing, hide_me, closed)
 end
 
 --- Convert a tree (made of Nodes) into a list of TreeLine (used to display our navbar).
--- Note: the root of the tree will be hidden.
+-- Note: the root of the tree will be hidden, we will only display the children.
 -- @tparam string stylename The name of the string to be used. @see tree.get_style.
 -- @tparam int spacing The number of extra characters to add in the lead.
 -- @tparam table closed A list of string indicating that some nodes are closed (their children hidden).
@@ -321,7 +321,18 @@ function tree.NodeBase:to_navbar(stylename, spacing, closed)
     stylename = stylename or 'bare'
     spacing = spacing or 0
     closed = closed or {}
-    local tl_list = self:to_treelines(stylename, spacing, true, closed)
+
+    local tl_list = {}
+
+    local empty_line = tree.TreeLine()
+
+    for _, child in ipairs(self:get_children()) do
+        for _, tl in ipairs(child:to_treelines(stylename, spacing, false, closed)) do
+            table.insert(tl_list, tl)
+        end
+        table.insert(tl_list, empty_line)
+    end
+
     return tl_list
 end
 

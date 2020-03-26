@@ -74,14 +74,23 @@ end
 function lgp.export_structure(str)
     local root = lgp.Node(tree.SEP)
 
+    local classes   = lgp.Node('Classes')
+    local functions = lgp.Node('Functions')
+    local variables = lgp.Node('Variables')
+
+    root:append(classes)
+    root:append(functions)
+    root:append(variables)
+
+    -- Extract structure from the buffer
+
     local parents = {}   -- table of parents indexed by indent
     local parent = nil
     local node
     local current_indent = 0
 
-    -- Extract structure from the buffer
-
     local lines = str:split('\n')
+    local tmp = lgp.Node(tree.SEP)
     for nb, line in ipairs(lines) do
 
         node = lgp.match_python_item(line)
@@ -94,7 +103,7 @@ function lgp.export_structure(str)
 
             elseif node.indent < current_indent then
                 if node.indent == 0 then
-                    parent = root
+                    parent = tmp
                 else
                     parent = parents[node.indent]:get_parent()
                 end
@@ -102,7 +111,7 @@ function lgp.export_structure(str)
 
             else -- node.indent == current_indent then
                 if node.indent == 0 then
-                    parent = root
+                    parent = tmp
                 else
                     -- do nothing special
                 end
@@ -112,7 +121,19 @@ function lgp.export_structure(str)
         end
     end
 
-    root:sort_children_rec()
+    tmp:sort_children_rec()
+
+    -- Format the tree properly
+
+    for k, v in ipairs(tmp:get_children()) do
+        if v.kind == lg.T_CLASS then
+            classes:append(v)
+        elseif v.kind == lg.T_FUNCTION then
+            functions:append(v)
+        elseif v.kind == lg.T_VARIABLE then
+            variables:append(v)
+        end
+    end
 
     return root
 end
@@ -142,48 +163,6 @@ end
 function lgp.Node:__repr()
     -- Allow us to display the nodes in a readable way.
     return 'Node(' .. table.concat({self.kind, self.name, self.line, self.indent}, ', ') .. ')'
-end
-
---- Convert a tree (made of Nodes) into 3 trees (made of Nodes)
--- @tparam string stylename The name of the string to be used. @see tree.get_style.
--- @tparam int spacing The number of extra characters to add in the lead.
--- @tparam table closed A list of string indicating that some nodes are closed (their children hidden).
--- @treturn table A list of {display_text, line}.
-function lgp.Node:to_navbar(stylename, spacing, closed)
-    stylename = stylename or 'bare'
-    spacing = spacing or 0
-    closed = closed or {}
-
-    local tl_list
-    local classes   = lgp.Node('Classes')
-    local functions = lgp.Node('Functions')
-    local variables = lgp.Node('Variables')
-
-    for k, v in ipairs(self:get_children()) do
-        if v.kind == lg.T_CLASS then
-            classes:append(v)
-        elseif v.kind == lg.T_FUNCTION then
-            functions:append(v)
-        elseif v.kind == lg.T_VARIABLE then
-            variables:append(v)
-        end
-    end
-
-    local empty_line = tree.TreeLine()
-
-    tl_list = classes:to_treelines(stylename, spacing, false, closed)
-    table.insert(tl_list, empty_line)
-
-    for _, tl in ipairs(functions:to_treelines(stylename, spacing, false, closed)) do
-        table.insert(tl_list, tl)
-    end
-    table.insert(tl_list, empty_line)
-
-    for _, tl in ipairs(variables:to_treelines(stylename, spacing, false, closed)) do
-        table.insert(tl_list, tl)
-    end
-
-    return tl_list
 end
 
 
