@@ -565,8 +565,6 @@ function preRune(pane, rune)
 
     if conf then
         local rune_toggle = config.GetGlobalOption("navbar.treeview_rune_toggle")
-        local rune_open  = config.GetGlobalOption("navbar.treeview_rune_open")
-        local rune_close = config.GetGlobalOption("navbar.treeview_rune_close")
         local rune_goto  = config.GetGlobalOption("navbar.treeview_rune_goto")
         local rune_open_all  = config.GetGlobalOption("navbar.treeview_rune_open_all")
         local rune_close_all = config.GetGlobalOption("navbar.treeview_rune_close_all")
@@ -575,12 +573,8 @@ function preRune(pane, rune)
             nvb_goto_line(pane)
         elseif rune == rune_toggle then
             nvb_node_toggle(pane)
-        elseif rune == rune_open then
-            nvb_node_open(pane)
         elseif rune == rune_open_all then
             nvb_node_open_all(pane)
-        elseif rune == rune_close then
-            nvb_node_close(pane)
         elseif rune == rune_close_all then
             nvb_node_close_all(pane)
         end
@@ -614,29 +608,6 @@ function nvb_goto_line(pane)
     micro.Log('< nvb_goto_line')
 end
 
---- Command to open a previously closed node in our tree view.
-function nvb_node_open(pane)
-    micro.Log('> nvb_node_open('..nvb_str(pane)..')')
-
-    local pane_id = nvb_str(pane)
-    local conf = treeviews[pane_id]
-    if conf then
-        local last_y = pane.Cursor.Loc.Y
-        local node = conf.node_list[last_y - 1]
-
-        if node ~= false then
-            local abs_label = node:get_abs_label()
-            if conf.closed[abs_label] then
-                conf.closed[abs_label] = nil
-                refresh_view(pane)
-                select_line(pane, last_y)
-            end
-        end
-    end
-
-    micro.Log('< nvb_node_open')
-end
-
 --- Command to open all previously closed nodes in our tree view.
 function nvb_node_open_all(pane)
     micro.Log('> nvb_node_open_all('..nvb_str(pane)..')')
@@ -651,29 +622,6 @@ function nvb_node_open_all(pane)
     end
 
     micro.Log('< nvb_node_open_all')
-end
-
---- Command to close a node with visible children in our tree view.
-function nvb_node_close(pane)
-    micro.Log('> nvb_node_close('..nvb_str(pane)..')')
-
-    local pane_id = nvb_str(pane)
-    local conf = treeviews[pane_id]
-    if conf then
-        local last_y = pane.Cursor.Loc.Y
-        local node = conf.node_list[last_y - 1]
-
-        if node ~= false then
-            local abs_label = node:get_abs_label()
-            if not conf.closed[abs_label] then
-                conf.closed[abs_label] = true
-                refresh_view(pane)
-                select_line(pane, last_y)
-            end
-        end
-    end
-
-    micro.Log('< nvb_node_close')
 end
 
 --- Command to close all node with visible children in our tree view.
@@ -762,9 +710,7 @@ function init()
     config.RegisterCommonOption("navbar", "softwrap", false)
     config.RegisterCommonOption("navbar", "treeview_size", 25)
     config.RegisterCommonOption("navbar", "treeview_rune_toggle", ' ')
-    config.RegisterCommonOption("navbar", "treeview_rune_open", '+')
     config.RegisterCommonOption("navbar", "treeview_rune_open_all", 'o')
-    config.RegisterCommonOption("navbar", "treeview_rune_close", '-')
     config.RegisterCommonOption("navbar", "treeview_rune_close_all", 'c')
     config.RegisterCommonOption("navbar", "treeview_rune_goto", 'g')
 
@@ -772,14 +718,10 @@ function init()
     config.MakeCommand("navbar", toggle_tree, config.NoComplete)
     -- Goto corresponding line
     config.MakeCommand("nvb_goto", nvb_goto_line, config.NoComplete)
-    -- Close an open node
+    -- Toggle a node between closed and open state
     config.MakeCommand("nvb_toggle", nvb_node_toggle, config.NoComplete)
-    -- Close an open node
-    config.MakeCommand("nvb_close", nvb_node_close, config.NoComplete)
     -- Close all open nodes
     config.MakeCommand("nvb_close_all", nvb_node_close_all, config.NoComplete)
-    -- Open a closed node
-    config.MakeCommand("nvb_open", nvb_node_open, config.NoComplete)
     -- Open all closed nodes
     config.MakeCommand("nvb_open_all", nvb_node_open_all, config.NoComplete)
 
