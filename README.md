@@ -72,6 +72,5 @@ BUGS
 
 TODO
 ----
-- When saving main buffer, we should try to keep the navbar as is (selected line).
 - Add ability to save the open/close status in between sessions (using json to store the data?)
 - Write a proper parser to extract objects, classes, functions, variables, constants with depth

@@ -536,9 +536,12 @@ function onSave(pane)
     local conf = mainviews[pane_id]
 
     if conf then
+        local treeview = conf.tree_view
+        local last_y = treeview.Cursor.Loc.Y
         -- rebuild the content of the tree whenever we save the main buffer.
         refresh_structure(pane)
         refresh_view(pane)
+        select_line(treeview, last_y)
     end
     micro.Log('< onSave')
 end
