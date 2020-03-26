@@ -69,11 +69,10 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 BUGS
 ----
-- When closing all nodes in a lua program, the Objects root got zapped, and reapered only when main buffer is saved.
-- When saving the navbar buffer, instead of displaying an error we should save the main buffer.
 
 TODO
 ----
+- When saving the navbar buffer, instead of displaying an error we should save the main buffer.
 - We need to keep the configuration of the side tab:ID() (buffer + main buffer and tabs) somewhere so that we can use it for updates (avoid opening a side buffer for a side buffer, etc.).
 - Add ability to save the open/close status in between sessions (using json to store the data?)
 - Write a proper parser to extract objects, classes, functions, variables, constants with depth
