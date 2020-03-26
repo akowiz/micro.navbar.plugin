@@ -155,13 +155,12 @@ end
 
 -- Hightlights the line when you move the cursor up/down
 local function select_line(pane, last_y)
-
-    local tab_id = micro.CurTab():ID()
-    local conf = treeviews[tab_id]
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
 
     if conf then
         -- Make last_y optional
-        if last_y ~= nil then
+        if last_y  then
             -- Don't let them move past the 2 first lines
             if last_y > 1 then
                 -- If the last position was valid, move back to it
@@ -188,7 +187,7 @@ end
 
 -- Moves the cursor to the top in tree_view
 local function move_cursor_top(pane)
-    local pane_id = tostring(pane)
+    local pane_id = nvb_str(pane)
     local conf = treeviews[pane_id]
 
     -- line to go to
