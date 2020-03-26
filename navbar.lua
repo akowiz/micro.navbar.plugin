@@ -513,24 +513,32 @@ function preQuitAll(pane)
     micro.Log('< preQuitAll')
 end
 
+-- Run when saving the buffer
+function preSave(pane)
+    micro.Log('> preSave('..nvb_str(pane)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+
+    if conf then
+        -- The treeview is read-only, so we should not be saving the treeview
+        return false
+    end
+
+    micro.Log('< preSave')
+end
+
 -- Run while saving the buffer.
 function onSave(pane)
     micro.Log('> onSave('..nvb_str(pane)..')')
 
     local pane_id = nvb_str(pane)
-    local m_conf = mainviews[pane_id]
-    local t_conf = treeviews[pane_id]
+    local conf = mainviews[pane_id]
 
-    if     m_conf then
+    if conf then
         -- rebuild the content of the tree whenever we save the main buffer.
         refresh_structure(pane)
         refresh_view(pane)
-    elseif t_conf then
-        micro.Log('X attempting to save the navbar !!!')
-        -- The treeview is read-only, so we should not be saving the treeview
-        -- Instead we could try to save the main buffer.
-        t_conf.main_view:Save()
-        return false
     end
     micro.Log('< onSave')
 end
