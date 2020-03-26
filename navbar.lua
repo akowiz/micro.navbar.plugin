@@ -521,7 +521,7 @@ function preSave(pane)
     local conf = treeviews[pane_id]
 
     if conf then
-        -- The treeview is read-only, so we should not be saving the treeview
+        -- The treeview is read-only, so we should not be saving the treeview.
         return false
     end
 
