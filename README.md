@@ -69,8 +69,6 @@ Current implementation should be easy to adapt to any language using fix indenta
 
 BUGS
 ----
-- When opening a Makefile, I am able to display the navbar.
-- When several tabs are open, opening navbar change the name of the tab. If several navbar are running, more sidebar are open, it gets messy quickly.
 - When closing all nodes in a lua program, the Objects root got zapped, and reapered only when main buffer is saved.
 
 TODO
