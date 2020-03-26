@@ -64,6 +64,10 @@ function NavBufConf:__init(main)
     micro.Log('< NavBufConf.__init')
 end
 
+function NavBufConf:supported()
+    return self.language and gen.is_in(self.language, {'lua', 'python'})
+end
+
 --- Display the configuration in a string.
 function NavBufConf:__tostring()
     ret = {}
@@ -288,7 +292,7 @@ local function open_tree(pane)
 
     -- FIXME: could language be '' instead of nil ?
     micro.Log('  conf.lang= '..tostring(conf.language))
-    if not conf.language then
+    if not conf:supported() then
         micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
         return
     end
