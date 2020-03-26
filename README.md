@@ -65,7 +65,7 @@ Settings
 
 Notes
 -----
-Current implementation should be easy to adapt to any language using fix indentation (like the python language). For other languages, we would need to rely on another mecanism (micro has built-in syntax analysis, not sure how we can access it from the plugin).
+Current implementation should be easy to adapt to any language using fix indentation (like the python language). For other languages, we would need to rely on another mecanism.
 
 BUGS
 ----
@@ -75,6 +75,6 @@ BUGS
 
 TODO
 ----
-- Add ability to save the open/close status in between sessions (using json to store the data?)
 - We need to keep the configuration of the side tab:ID() (buffer + main buffer and tabs) somewhere so that we can use it for updates (avoid opening a side buffer for a side buffer, etc.).
+- Add ability to save the open/close status in between sessions (using json to store the data?)
 - Write a proper parser to extract objects, classes, functions, variables, constants with depth
