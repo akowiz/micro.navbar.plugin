@@ -535,10 +535,9 @@ function onBufferOpen(buf)
         -- local conf = mainviews[pane_id]
 
 
-        -- local main_view = micro.CurPane()
-        -- micro.Log('  CurPane: '..tostring(main_view))
-        -- micro.Log('  CurPane.Buf: '..tostring(main_view.Buf))
-        -- micro.Log('  CurPane.Buf:GetName(): '..main_view.Buf:GetName())
+        local main_view = micro.CurPane()
+        micro.Log('  CurPane: '..nvb_str(main_view))
+        micro.Log('  CurPane.Buf:GetName(): '..main_view.Buf:GetName())
 ---[[
         -- Retrieve the FileType 'openonstart' option.
         local openonstart = get_option_among_list(buf, 'navbar.openonstart', {true, false}, false)
@@ -546,10 +545,12 @@ function onBufferOpen(buf)
         -- micro.Log('  conf is ' .. tostring(conf))
         -- micro.Log('  buffer name = ' .. buf:GetName())
         -- micro.Log('  buffer ft = ' .. buf:FileType())
-        -- micro.Log('  buffer openonstart = ' .. tostring(openonstart))
+        micro.Log('  buffer openonstart = ' .. tostring(openonstart))
 
-        -- if not conf and openonstart then
-            -- toggle_tree()
+        -- need to disable until we can find a way to retrieve the view from a
+        -- buffer.
+        -- if openonstart then
+            -- toggle_tree(nil)
         -- end
 --]]
 
@@ -630,6 +631,38 @@ function onFind(pane)
     selectline_if_tree(pane)
 end
 
+--- Command to handle mouse press.
+function MousePress(pane)
+    micro.Log('> MousePress('..nvb_str(pane)..')')
+    micro.Log('< MousePress')
+end
+
+--- Command to handle mouse press.
+function onMousePress(pane)
+    micro.Log('> onMousePress('..nvb_str(pane)..')')
+    micro.Log('< onMousePress')
+end
+
+function preMousePress(pane, event)
+    micro.Log('> preMousePress('..nvb_str(pane)..'/'..tostring(event)..')')
+
+    local pane_id = nvb_str(pane)
+    local conf = treeviews[pane_id]
+
+    if conf then
+        local x, y = event:Position()
+        -- Fixes the y because softwrap messes with it
+        local new_x, new_y = conf.treeview:GetMouseClickLocation(x, y)
+        micro.Log('X Click')
+        -- Try to open whatever is at the click's y index
+        -- Will go into/back dirs based on what's clicked, nothing gets expanded
+        -- try_open_at_y(new_y)
+        -- Don't actually allow the mousepress to trigger, so we avoid highlighting stuff
+        return false
+    end
+
+    micro.Log('< preMousePress')
+end
 
 --- Preprocess the find command
 function preFind(pane)
