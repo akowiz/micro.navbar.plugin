@@ -7,6 +7,24 @@ local gen = {}
 -- Helper Functions
 -------------------------------------------------------------------------------
 
+--- Escape all punctuations contained in string.
+-- @treturn string The escaped string
+function string:escape_punctuation()
+    return self:gsub("%p", "%%%1")
+end
+
+--- Replace the linux path separator.
+-- @treturn string The escaped string
+function string:replace_path_sep()
+    return self:gsub("%/", "%%")
+end
+
+--- Trim space at the begining and end of the string.
+-- @treturn string The new string.
+function string:trim()
+   return self:gsub("^%s*(.-)%s*$", "%1")
+end
+
 --- Return true if string starts with start.
 -- @tparam string start The string we are looking for.
 -- @treturn bool true if the string starts with start.
@@ -26,7 +44,7 @@ end
 -- @tparam string str The string we are looking for.
 -- @treturn bool true if the string contains str.
 function string:contains(str)
-    local pat = string.gsub(str, "%p", "%%%1")
+    local pat = str:escape_punctuation()
     if string.find(self, pat) == nil then
         return false
     end
