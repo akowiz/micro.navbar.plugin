@@ -1,12 +1,12 @@
 [{
   "Name": "navbar",
-  "Description": "Plugin to navigate through a file using a navigation bar.",
-  "Tags": ["navigation", "classes", "functions", "variables", "constants"],
-  "Website": "https://github.com/",
+  "Description": "Plugin to navigate through a file symbols using a sidebar menu.",
+  "Tags": ["navigation", "classes", "constants", "functions", "objects", "variables", "lua", "python"],
+  "Website": "https://github.com/akowiz/navbar",
   "Versions": [
     {
       "Version": "0.0.1",
-      "Url": "https://github.com/",
+      "Url": "https://github.com/akowiz/archive/v0.0.1.zip",
       "Require": {
         "micro": ">=2.0.0-1"
       }
