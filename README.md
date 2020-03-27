@@ -54,14 +54,14 @@ Supported Languages
 Settings
 --------
 - openonstart: bool (true or false), set to true to open when micro is open. Default to false.
+- softwrap: bool (true or false), set to true to use wrapping in the treeview window. Default to false.
+- persistent: bool (true or false), set to true to have the list of closed nodes be persistent when closing/opening micro.
 - treestyle: string ('bare', 'ascii', 'box'), the style to use to display the tree. Default to 'bare'.
 - treestyle_spacing: int (0, 1, etc.), the number of extra-characters to use for the tree branch. Default to 0.
-- softwrap: bool (true or false), set to true to use wrapping in the treeview window. Default to false.
-- treeview_rune_open: string (single letter), the key to use in the tree_view to open a node that is closed. Default to '+'.
-- treeview_rune_open_all: string (single letter), the key to use in the tree_view to open all nodes. Default to 'o'.
-- treeview_rune_close: string (single letter), the key to use in the tree_view to open a node that is closed. Default to '-'.
 - treeview_rune_close_all: string (single letter), the key to use in the tree_view to close all nodes. Default to 'c'.
-- treeview_rune_goto: string (single letter), the key to use in the tree_view to move the cursor in the main_view to the corresponding item. Default to ' '.
+- treeview_rune_goto: string (single letter), the key to use in the tree_view to move the cursor in the main_view to the corresponding item. Default to 'g'.
+- treeview_rune_open_all: string (single letter), the key to use in the tree_view to open all nodes. Default to 'o'.
+- treeview_rune_toggle: string (single letter), the key to use in the tree_view to toggle a node with children between open and closed. Default to ' ' (space bar).
 
 Notes
 -----
@@ -72,5 +72,5 @@ BUGS
 
 TODO
 ----
-- Add ability to save the open/close status in between sessions (using json to store the data?)
+- Better mouse support.
 - Write a proper parser to extract objects, classes, functions, variables, constants with depth
