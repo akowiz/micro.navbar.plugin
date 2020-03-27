@@ -1,6 +1,6 @@
---- @module navbar
-
 VERSION = "0.0.1"
+
+--- @module navbar
 
 local nvb_path = os.getenv("HOME") .. '/.config/micro/plug/navbar/'
 if not string.find(package.path, nvb_path) then
