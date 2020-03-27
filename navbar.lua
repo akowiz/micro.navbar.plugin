@@ -11,6 +11,7 @@ local micro  = import("micro")
 local config = import("micro/config")
 local util   = import("micro/util")
 local buffer = import("micro/buffer")
+local gos    = import("os")
 
 
 local gen = require('generic')
@@ -43,6 +44,10 @@ local function buf_str(buf)
     return ret
 end
 
+local function convert_filename(filename)
+    return filename:replace_path_sep() .. '.closed'
+end
+
 --- NavBufConf hold our configuration for the current buffer
 -- type NavBufConf
 local NavBufConf = gen.class()
@@ -54,6 +59,7 @@ function NavBufConf:__init(main)
     self.tree_view = nil
     self.root = nil
     self.node_list = nil
+    self.persistent = false
     self.closed = {}
     self.language = nil
 
@@ -74,9 +80,74 @@ function NavBufConf:__tostring()
     table.insert(ret, 'main_view: '..nvb_str(self.main_view))
     table.insert(ret, 'tree_view: '..nvb_str(self.tree_view))
     table.insert(ret, 'language:  '..tostring(self.language))
+    table.insert(ret, 'persistent:'..tostring(self.persistent))
     table.insert(ret, 'closed:    '..gen.set_tostring(self.closed))
     ret = table.concat(ret, ', ')
     return ret
+end
+
+--- Load the closed list from a file
+function NavBufConf:closed_load()
+    micro.Log('> NavBufConf:closed_load()')
+    if not self.persistent then
+        return
+    end
+
+    local closed_nodes = {}
+    local path = os.getenv("HOME").."/.local/share/micro/navbar"
+    local filename = path..'/'..convert_filename(self.main_view.Buf.AbsPath)
+
+    -- create the directry if it doesn't exists
+    micro.Log("  mkdir "..path)
+    gos.MkdirAll(path, gos.ModePerm)
+
+    -- read the file
+    micro.Log("  reading "..filename)
+    local file = io.open(filename, 'r')
+    if file then
+        for line in file:lines() do
+            if line ~= '' then
+                self.closed[line] = true
+            end
+        end
+        file:close()
+    end
+
+    micro.Log('< NavBufConf:closed_load')
+end
+
+--- Save the closed list in a file
+function NavBufConf:closed_save()
+    micro.Log('> NavBufConf:closed_save()')
+    if not self.persistent then
+        return
+    end
+
+    local path = os.getenv("HOME").."/.local/share/micro/navbar"
+    local filename = path..'/'..convert_filename(self.main_view.Buf.AbsPath)
+
+    -- create the directry if it doesn't exists
+    micro.Log("  mkdir "..path)
+    gos.MkdirAll(path, gos.ModePerm)
+
+    -- sort the data
+    local closed_nodes = {}
+    for k, v in pairs(self.closed) do
+        closed_nodes[#closed_nodes+1] = k
+    end
+    table.sort(closed_nodes)
+
+    -- write the file
+    micro.Log("  writing "..filename)
+    local file = io.open(filename, 'w+')
+    if file then
+        for _, v in ipairs(closed_nodes) do
+            file:write(v..'\n')
+        end
+        file:flush()
+        file:close()
+    end
+    micro.Log('< NavBufConf:closed_save')
 end
 
 -- class
@@ -308,6 +379,9 @@ local function open_tree(pane)
     local size = get_option_among_range(main_view.Buf, 'navbar.treeview_size', SIZE_MIN)
     conf.tree_view:ResizePane(size)
 
+    local persistent = get_option_among_list(main_view.Buf, 'navbar.persistent', {true, false}, false)
+    conf.persistent = persistent
+
     -- Set the type to unsavable
     -- tree_view.Buf.Type = buffer.BTLog
     conf.tree_view.Buf.Type.Scratch = true
@@ -330,6 +404,7 @@ local function open_tree(pane)
     conf.tree_view.Buf:SetOptionNative("scrollbar", false)
 
     -- Display the content
+    conf:closed_load()
     refresh_structure(main_view)
     refresh_view(main_view)
 
@@ -494,6 +569,8 @@ function preQuit(pane)
     local pane_id = nvb_str(pane)
     local conf = mainviews[pane_id]
     if conf then
+        micro.Log('  conf = '..tostring(conf))
+        conf:closed_save()
         close_tree(pane)
     end
 
@@ -619,6 +696,7 @@ function nvb_node_open_all(pane)
     local conf = treeviews[pane_id]
     if conf then
         local last_y = 2
+        micro.Log("  conf.closed := {}")
         conf.closed = {}
         refresh_view(pane)
         select_line(pane, last_y)
@@ -642,6 +720,7 @@ function nvb_node_close_all(pane)
             if node then
                 if not gen.is_empty(node:get_children()) then
                     local abs_label = node:get_abs_label()
+                    micro.Log("  conf.closed += '"..abs_label.."'")
                     conf.closed[abs_label] = true
                 end
             end
@@ -666,8 +745,10 @@ function nvb_node_toggle(pane)
         if node then
             local abs_label = node:get_abs_label()
             if not conf.closed[abs_label] then
+                micro.Log("  conf.closed += '"..abs_label.."'")
                 conf.closed[abs_label] = true
             else
+                micro.Log("  conf.closed -= '"..abs_label.."'")
                 conf.closed[abs_label] = nil
             end
             refresh_view(pane)
@@ -711,6 +792,7 @@ function init()
     config.RegisterCommonOption("navbar", "treestyle", "bare")
     config.RegisterCommonOption("navbar", "treestyle_spacing", 0)
     config.RegisterCommonOption("navbar", "softwrap", false)
+    config.RegisterCommonOption("navbar", "persistent", false)
     config.RegisterCommonOption("navbar", "treeview_size", 25)
     config.RegisterCommonOption("navbar", "treeview_rune_toggle", ' ')
     config.RegisterCommonOption("navbar", "treeview_rune_open_all", 'o')
