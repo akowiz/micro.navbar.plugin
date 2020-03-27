@@ -5,7 +5,7 @@
 Navigation bar (class and functions) for micro editor.
 
 There are 3 styles defined to display the tree: 'bare', 'ascii' and 'box'
-
+```
 * 'bare' style *
 
 v Classes               > Classes
@@ -43,7 +43,7 @@ v Variables
   └ TestFunction
 ▾ Variables
   └ TestVariable
-
+```
 
 Supported Languages
 -------------------
