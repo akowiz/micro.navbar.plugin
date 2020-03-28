@@ -225,47 +225,47 @@ local function clear_messenger()
 end
 
 -- Hightlights the line when you move the cursor up/down
+-- @tparam pane pane The BufPanel object.
+-- @tparam last_y int The line in the buffer.
 local function select_line(pane, last_y)
+    keepview = keepview or false
     local pane_id = nvb_str(pane)
     micro.Log('> select_line('..pane_id..', '..tostring(last_y)..')')
 
     local conf = treepanes[pane_id]
 
     if conf then
+
+        local cursor_y  = conf.tree_pane.Cursor.Y
+        local view      = conf.tree_pane:GetView()
+        local height    = view.Height
+        local startline = view.StartLine
+        local lines     = conf.tree_pane.Buf:LinesNum()
+
+        micro.Log('S tree_pane.cursor_y = '..tostring(cursor_y))
+        micro.Log('S tree_pane.height = '..tostring(height))
+        micro.Log('S tree_pane.lines = '..tostring(lines))
+        micro.Log('S tree_pane.startline = '..tostring(startline))
+
         -- Make last_y optional
         if last_y ~= nil then
             -- Don't let them move past ".." by checking the result first
             if last_y > 1 then
                 -- If the last position was valid, move back to it
                 conf.tree_pane.Cursor.Loc.Y = last_y
-                micro.Log('Y set tree_pane.Cursor to '..tostring(last_y))
             end
         else
             local pos_y = conf.tree_pane.Cursor.Loc.Y
             if pos_y < 2 then
                 -- Put the cursor on the ".." if it's above it
+                startline = 0
                 conf.tree_pane.Cursor.Loc.Y = 2
-                micro.Log('Z set tree_pane.Cursor to '..tostring(last_y))
-            else
-                micro.Log('Z not doing anything pos_y='..tostring(pos_y))
             end
         end
 
-        -- Puts the cursor back in bounds (if it isn't) for safety
-        -- conf.tree_pane.Cursor:Relocate()
-
-        -- Makes sure the cursor is visible (if it isn't)
-        -- (false) means no callback
-        local cursor_y = conf.tree_pane.Cursor.Y
-        local height   = conf.tree_pane:GetView().Height
-        local lines    = conf.tree_pane.Buf:LinesNum()
-
-        micro.Log('S tree_pane.cursor_y ='..tostring(cursor_y))
-        micro.Log('S tree_pane.height ='..tostring(height))
-        micro.Log('S tree_pane.lines ='..tostring(lines))
-
-        conf.tree_pane:Center()
-
+        if lines <= height then
+            startline = 0
+        end
         -- Highlight the current line where the cursor is
         conf.tree_pane.Cursor:SelectLine()
     end
@@ -276,16 +276,19 @@ end
 local function move_cursor_top(pane)
     local pane_id = nvb_str(pane)
     local conf = treepanes[pane_id]
+    local view = pane:GetView()
 
     -- line to go to
     if conf then
+        view.StartLine = 0
         pane.Cursor.Loc.Y = 2
     else
+        view.StartLine = 0
         pane.Cursor.Loc.Y = 0
     end
 
     -- select the line after moving
-    select_line(pane)
+    select_line(pane, nil)
 end
 
 
@@ -378,7 +381,6 @@ local function open_tree(pane)
     local conf = NavBufConf(main_pane)
     mainpanes[main_id] = conf
 
-    -- FIXME: could language be '' instead of nil ?
     micro.Log('  conf.lang= '..tostring(conf.language))
     if not conf:supported() then
         micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
@@ -426,7 +428,7 @@ local function open_tree(pane)
     refresh_structure(main_pane)
     refresh_view(main_pane)
 
-    -- Move the cursor
+    -- Move the cursor to the top
     move_cursor_top(conf.tree_pane)
 
     for k, cnf in pairs(mainpanes) do
@@ -494,7 +496,7 @@ local function selectline_if_tree(pane)
     local conf = treepanes[pane_id]
 
     if conf then
-        select_line(pane)
+        select_line(pane, nil)
     end
 end
 
@@ -747,10 +749,17 @@ function nvb_node_open_all(pane)
     local conf = treepanes[pane_id]
     if conf then
         local last_y = pane.Cursor.Loc.Y
-        micro.Log('X last_y='..tostring(last_y))
+        local view = pane:GetView()
+        local startline = view.StartLine
+        micro.Log('X last_y = '..tostring(last_y))
+        micro.Log('X startline = '..tostring(startline))
+
         micro.Log("  conf.closed := {}")
         conf.closed = {}
         refresh_view(pane)
+        -- Reset the view
+        last_y = 2
+        view.StartLine = 0
         select_line(pane, last_y)
     end
 
@@ -778,9 +787,12 @@ function nvb_node_close_all(pane)
                 end
             end
         end
+        local view = pane:GetView()
         refresh_view(pane)
-        conf.tree_pane.Cursor.Loc.Y = 2
-        selectline_if_tree(pane)
+        -- Reset the view
+        last_y = 2
+        view.StartLine = 0
+        select_line(pane, last_y)
     end
 
     micro.Log('< nvb_node_close_all')
@@ -806,7 +818,10 @@ function nvb_node_toggle(pane)
                 micro.Log("  conf.closed -= '"..abs_label.."'")
                 conf.closed[abs_label] = nil
             end
+            local view = pane:GetView()
+            local startline = view.StartLine
             refresh_view(pane)
+            view.StartLine = startline
             select_line(pane, last_y)
         end
 
