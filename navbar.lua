@@ -725,14 +725,22 @@ function nvb_goto_line(pane)
 
     local pane_id = nvb_str(pane)
     local conf = treepanes[pane_id]
+
     if conf then
         local last_y = pane.Cursor.Loc.Y
         local node = conf.node_list[last_y - 1]
 
         if node ~= false and node.line ~= -1 then
+            local startline
+            if node.line - 2 < 0 then
+                startline = 0
+            else
+                startline = node.line - 2
+            end
+            conf.main_pane:GetView().StartLine = startline
             conf.main_pane.Cursor.Loc.Y = node.line - 1
-            conf.main_pane.Cursor:Relocate()
-            conf.main_pane:Center()
+            -- Center() doesn't work for us, we need to do our own
+            -- conf.main_pane:Center()
             conf.main_pane.Cursor:SelectLine()
             selectline_if_tree(pane)
         end
