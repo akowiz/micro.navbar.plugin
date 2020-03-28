@@ -366,7 +366,9 @@ local function refresh_view(pane)
         conf.tree_pane.Buf:Start(), '» Symbols »\n\n')
     conf.tree_pane.Buf.EventHandler:Insert(
         conf.tree_pane.Buf:End(), content)
-    conf.tree_pane:Tab():Resize()
+
+    -- this redraw the main view, which we might not need actually
+    -- conf.tree_pane:Tab():Resize()
 
     micro.Log('< refresh_view')
 end
@@ -832,7 +834,6 @@ function nvb_node_toggle(pane)
             view.StartLine = startline
             select_line(pane, last_y)
         end
-
     end
 
     micro.Log('< toggle_node')
