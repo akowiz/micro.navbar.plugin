@@ -343,7 +343,7 @@ local function refresh_view(pane)
         conf.tree_view.Buf:End())
 
     -- display a new tree_view
-    conf.tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), 'Symbols\n\n')
+    conf.tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 0), '» Symbols »\n\n')
     conf.tree_view.Buf.EventHandler:Insert(buffer.Loc(0, 2), content)
     conf.tree_view:Tab():Resize()
 
@@ -816,7 +816,10 @@ end
 function init()
     micro.Log('> init')
     init_started = true
+
     config.AddRuntimeFile("navbar", config.RTHelp, "help/navbar.md")
+    config.AddRuntimeFile("navbar", config.RTSyntax, "syntax.yaml")
+
     config.TryBindKey("Alt-n", "lua:navbar.toggle_tree", false)
 
     -- Lets the user have the filetree auto-open any time Micro is opened
