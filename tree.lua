@@ -7,17 +7,19 @@ if not OS_TYPE then
         ((OS_TYPE == 'windows') and '\\') or
         ((OS_TYPE == 'posix') and '/')
     )
-    local pkg_path_sep, path_plug
+    rawset(_G, "PATH_PLUGIN", nil)
+
+    local pkg_path_sep
     if OS_TYPE == 'posix' then
         pkg_path_sep = ';'
-        path_plug = os.getenv("HOME")..'/.config/micro/plug/navbar/'
+        PATH_PLUGIN = os.getenv("HOME")..'/.config/micro/plug/navbar/'
     elseif OS_TYPE == 'windows' then
         pkg_path_sep = ':'
-        path_plug = nil
+        PATH_PLUGIN = nil
     end
-    if path_plug then
-        if not string.find(package.path, path_plug) then
-            package.path = path_plug .. "?.lua" .. pkg_path_sep .. package.path
+    if PATH_PLUGIN then
+        if not string.find(package.path, PATH_PLUGIN) then
+            package.path = PATH_PLUGIN .. "?.lua" .. pkg_path_sep .. package.path
         end
     else
         error("Unsupported platform at the moment.")

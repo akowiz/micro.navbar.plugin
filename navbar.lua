@@ -9,18 +9,19 @@ if not OS_TYPE then
         ((OS_TYPE == 'windows') and '\\') or
         ((OS_TYPE == 'posix') and '/')
     )
-    local pkg_path_sep, path_plug
+    rawset(_G, "PATH_PLUGIN", nil)
+
+    local pkg_path_sep
     if OS_TYPE == 'posix' then
         pkg_path_sep = ';'
-        path_plug = os.getenv("HOME")..'/.config/micro/plug/navbar/'
+        PATH_PLUGIN = os.getenv("HOME")..'/.config/micro/plug/navbar/'
     elseif OS_TYPE == 'windows' then
         pkg_path_sep = ':'
-        path_plug = nil
+        PATH_PLUGIN = nil
     end
-    if path_plug then
-        if not string.find(package.path, path_plug) then
-            package.path = path_plug .. "?.lua" .. pkg_path_sep .. package.path
-            package.path = path_plug .. 'supported' .. PATH_SEP .. "?.lua" .. pkg_path_sep .. package.path
+    if PATH_PLUGIN then
+        if not string.find(package.path, PATH_PLUGIN) then
+            package.path = PATH_PLUGIN .. "?.lua" .. pkg_path_sep .. package.path
         end
     else
         error("Unsupported platform at the moment.")
@@ -36,8 +37,6 @@ local gos    = import("os")
 
 
 local gen = require('generic')
-local lgp = require('supported/python')
-local lgl = require('supported/lua')
 
 local DISPLAY_NAME = 'navbar'
 local SIZE_MIN = 15
@@ -45,6 +44,7 @@ local SIZE_MIN = 15
 local mainpanes = {} -- table of NavBufConf objects indexed by nvb_str(main_pane)
 local treepanes = {} -- table of NavBufConf objects indexes by nvb_str(tree_pane)
 local init_started = false
+local languages_supported = {}
 
 local usr_local_share
 if OS_TYPE == 'posix' then
@@ -52,7 +52,6 @@ if OS_TYPE == 'posix' then
 elseif OS_TYPE == 'windows' then
     usr_local_share = nil
 end
-
 
 -------------------------------------------------------------------------------
 
@@ -74,6 +73,18 @@ end
 
 local function convert_filename(filename)
     return filename:replace(PATH_SEP, '%') .. '.closed'
+end
+
+local function get_languages_supported()
+    local dir = PATH_PLUGIN .. 'supported'
+    micro.Log('  directory to scan = '..dir)
+    local list = {}
+    for _, file in ipairs(gen.scandir_posix(dir)) do
+        local filetype = string.match(file, "^([_%a%d]+).lua")
+        list[filetype] = { file=file, func=nil}
+    end
+    micro.Log('  languages supported = '..table.concat(gen.keys(list), ', '))
+    return list
 end
 
 --- NavBufConf hold our configuration for the current buffer
@@ -99,7 +110,8 @@ function NavBufConf:__init(main)
 end
 
 function NavBufConf:supported()
-    return self.language and gen.is_in(self.language, {'lua', 'python'})
+    local languages = gen.keys(languages_supported)
+    return self.language and gen.is_in(self.language, languages)
 end
 
 --- Display the configuration in a string.
@@ -322,19 +334,22 @@ local function refresh_structure(pane)
     local pane_id = nvb_str(pane)
     local conf = mainpanes[pane_id] or treepanes[pane_id]
 
-    if (not conf) or (conf and not conf.language) then
-        micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
-        return
+    if conf and conf:supported() then
+        local language = conf.language
+        local bytes = util.String(conf.main_pane.Buf:Bytes())
+
+        conf.root = nil
+        if not languages_supported[language].func then
+            local required = 'supported'..PATH_SEP..language
+            micro.Log(' required='..required)
+            local mod = require(required)
+            languages_supported[language].func = mod.export_structure
+        end
+
+        -- call the export_structure() for our language
+        conf.root = languages_supported[language].func(bytes)
     end
 
-    local bytes = util.String(conf.main_pane.Buf:Bytes())
-
-    conf.root = nil
-    if     conf.language == 'python' then
-        conf.root = lgp.export_structure(bytes)
-    elseif conf.language == 'lua' then
-        conf.root = lgl.export_structure(bytes)
-    end
     micro.Log('< refresh_structure()')
 end
 
@@ -409,7 +424,7 @@ local function open_tree(pane)
 
     micro.Log('  conf.lang= '..tostring(conf.language))
     if not conf:supported() then
-        micro.InfoBar():Error(DISPLAY_NAME .. ": Only python and lua languages are currently supported.")
+        micro.InfoBar():Error(DISPLAY_NAME..": "..conf.language.." language is currently not supported.")
         return
     end
 
@@ -886,6 +901,8 @@ end
 function init()
     micro.Log('> init')
     init_started = true
+
+    languages_supported = get_languages_supported()
 
     config.AddRuntimeFile("navbar", config.RTHelp, "help/navbar.md")
     config.AddRuntimeFile("navbar", config.RTSyntax, "syntax.yaml")

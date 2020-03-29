@@ -82,6 +82,17 @@ function string:split(sep, max, regex)
    return record
 end
 
+--- Return a list with the keys from the table.
+-- @tparam table atable The table to use as source.
+-- @treturn table A list of the keys from the table.
+function gen.keys(atable)
+    local keys = {}
+    for key, _ in pairs(atable) do
+        keys[#keys+1] = key
+    end
+    return keys
+end
+
 --- Create a set from a list (table)
 -- @tparam table list The table to use as source.
 -- @treturn table A set (using the elements from list as keys)
@@ -160,6 +171,29 @@ function gen.is_in(val, list)
         end
     end
     return false
+end
+
+--- Lua implementation of PHP scandir for posix systems (we only want the list of file).
+function gen.scandir_posix(directory)
+    directory = directory or '.'
+    local t, popen = {}, io.popen
+    local pfile = popen('ls -A "'..directory..'"')
+    for filename in pfile:lines() do
+        t[#t+1] = filename
+    end
+    pfile:close()
+    return t
+end
+
+--- Lua implementation of PHP scandir for windows systems.
+function gen.scandir_windows(directory)
+    local t, popen = {}, io.popen
+    local pfile = popen('dir "'..directory..'" /b')
+    for filename in pfile:lines() do
+        t[#t+1] = filename
+    end
+    pfile:close()
+    return t
 end
 
 --- Return a Class object
