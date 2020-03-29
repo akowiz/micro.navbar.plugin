@@ -13,10 +13,10 @@ function string:escape_punctuation()
     return self:gsub("%p", "%%%1")
 end
 
---- Replace the linux path separator.
+--- Replace a string by another one (escape the punctuation).
 -- @treturn string The escaped string
-function string:replace_path_sep()
-    return self:gsub("%/", "%%")
+function string:replace(from, into)
+    return self:gsub(from:escape_punctuation(), into)
 end
 
 --- Trim space at the begining and end of the string.

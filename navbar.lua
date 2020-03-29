@@ -2,10 +2,30 @@ VERSION = "0.0.1"
 
 --- @module navbar
 
-local nvb_path = os.getenv("HOME") .. '/.config/micro/plug/navbar/'
-if not string.find(package.path, nvb_path) then
-    package.path = nvb_path .. "?.lua;" .. package.path
+-- Detecting the operating system to update the package.path
+if not OS_TYPE then
+    rawset(_G, "OS_TYPE",  (os.getenv("WINDIR") and 'windows') or 'posix')
+    rawset(_G, "PATH_SEP",
+        ((OS_TYPE == 'windows') and '\\') or
+        ((OS_TYPE == 'posix') and '/')
+    )
+    local pkg_path_sep, path_plug
+    if OS_TYPE == 'posix' then
+        pkg_path_sep = ';'
+        path_plug = os.getenv("HOME")..'/.config/micro/plug/navbar/'
+    elseif OS_TYPE == 'windows' then
+        pkg_path_sep = ':'
+        path_plug = nil
+    end
+    if path_plug then
+        if not string.find(package.path, path_plug) then
+            package.path = path_plug .. "?.lua" .. pkg_path_sep .. package.path
+        end
+    else
+        error("Unsupported platform at the moment.")
+    end
 end
+
 
 local micro  = import("micro")
 local config = import("micro/config")
@@ -24,6 +44,13 @@ local SIZE_MIN = 15
 local mainpanes = {} -- table of NavBufConf objects indexed by nvb_str(main_pane)
 local treepanes = {} -- table of NavBufConf objects indexes by nvb_str(tree_pane)
 local init_started = false
+
+local usr_local_share
+if OS_TYPE == 'posix' then
+    usr_local_share = os.getenv("HOME").."/.local/share/micro/navbar/"
+elseif OS_TYPE == 'windows' then
+    usr_local_share = nil
+end
 
 
 -------------------------------------------------------------------------------
@@ -45,7 +72,7 @@ local function buf_str(buf)
 end
 
 local function convert_filename(filename)
-    return filename:replace_path_sep() .. '.closed'
+    return filename:replace(PATH_SEP, '%') .. '.closed'
 end
 
 --- NavBufConf hold our configuration for the current buffer
@@ -92,14 +119,12 @@ function NavBufConf:closed_load()
     if not self.persistent then
         return
     end
-
+    local filename = usr_local_share..convert_filename(self.main_pane.Buf.AbsPath)
     local closed_nodes = {}
-    local path = os.getenv("HOME").."/.local/share/micro/navbar"
-    local filename = path..'/'..convert_filename(self.main_pane.Buf.AbsPath)
 
     -- create the directry if it doesn't exists
-    micro.Log("  mkdir "..path)
-    gos.MkdirAll(path, gos.ModePerm)
+    micro.Log("  mkdir "..usr_local_share)
+    gos.MkdirAll(usr_local_share, gos.ModePerm)
 
     -- read the file
     micro.Log("  reading "..filename)
@@ -122,13 +147,11 @@ function NavBufConf:closed_save()
     if not self.persistent then
         return
     end
-
-    local path = os.getenv("HOME").."/.local/share/micro/navbar"
-    local filename = path..'/'..convert_filename(self.main_pane.Buf.AbsPath)
+    local filename = usr_local_share..convert_filename(self.main_pane.Buf.AbsPath)
 
     -- create the directry if it doesn't exists
-    micro.Log("  mkdir "..path)
-    gos.MkdirAll(path, gos.ModePerm)
+    micro.Log("  mkdir "..usr_local_share)
+    gos.MkdirAll(usr_local_share, gos.ModePerm)
 
     -- sort the data
     local closed_nodes = {}

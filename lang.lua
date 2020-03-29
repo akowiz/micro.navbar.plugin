@@ -1,8 +1,27 @@
 --- @module navbar.lang
 
-local nvb_path = os.getenv("HOME") .. '/.config/micro/plug/navbar/'
-if not string.find(package.path, nvb_path) then
-    package.path = nvb_path .. "?.lua;" .. package.path
+-- Detecting the operating system to update the package.path
+if not OS_TYPE then
+    rawset(_G, "OS_TYPE",  (os.getenv("WINDIR") and 'windows') or 'posix')
+    rawset(_G, "PATH_SEP",
+        ((OS_TYPE == 'windows') and '\\') or
+        ((OS_TYPE == 'posix') and '/')
+    )
+    local pkg_path_sep, path_plug
+    if OS_TYPE == 'posix' then
+        pkg_path_sep = ';'
+        path_plug = os.getenv("HOME")..'/.config/micro/plug/navbar/'
+    elseif OS_TYPE == 'windows' then
+        pkg_path_sep = ':'
+        path_plug = nil
+    end
+    if path_plug then
+        if not string.find(package.path, path_plug) then
+            package.path = path_plug .. "?.lua" .. pkg_path_sep .. package.path
+        end
+    else
+        error("Unsupported platform at the moment.")
+    end
 end
 
 local lg = {}
