@@ -27,9 +27,9 @@ end
 local lgp = {}
 
 
-local gen  = require('generic')
-local tree = require('tree')
-local lg   = require('lang')
+local gen  = require('../generic')
+local tree = require('../tree')
+local lg   = require('../lang')
 
 
 local DEBUG = false

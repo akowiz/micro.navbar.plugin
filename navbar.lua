@@ -20,6 +20,7 @@ if not OS_TYPE then
     if path_plug then
         if not string.find(package.path, path_plug) then
             package.path = path_plug .. "?.lua" .. pkg_path_sep .. package.path
+            package.path = path_plug .. 'supported' .. PATH_SEP .. "?.lua" .. pkg_path_sep .. package.path
         end
     else
         error("Unsupported platform at the moment.")
@@ -35,8 +36,8 @@ local gos    = import("os")
 
 
 local gen = require('generic')
-local lgp = require('lang_python')
-local lgl = require('lang_lua')
+local lgp = require('supported/python')
+local lgl = require('supported/lua')
 
 local DISPLAY_NAME = 'navbar'
 local SIZE_MIN = 15
