@@ -81,7 +81,7 @@ local function get_languages_supported()
     local list = {}
     for _, file in ipairs(gen.scandir_posix(dir)) do
         local filetype = string.match(file, "^([_%a%d]+).lua")
-        list[filetype] = { file=file, func=nil}
+        list[filetype] = { file=file, func=nil }
     end
     micro.Log('  languages supported = '..table.concat(gen.keys(list), ', '))
     return list
