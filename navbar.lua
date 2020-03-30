@@ -42,7 +42,7 @@ local SIZE_MIN = 15
 local mainpanes = {} -- table of NavBufConf objects indexed by nvb_str(main_pane)
 local treepanes = {} -- table of NavBufConf objects indexes by nvb_str(tree_pane)
 local init_started = false
-local languages_supported = {}
+local languages_supported = nil
 
 local path_sep = string.char(gos.PathSeparator)
 
@@ -106,6 +106,9 @@ function NavBufConf:__init(main)
 end
 
 function NavBufConf:supported()
+    if not languages_supported then
+        languages_supported = get_languages_supported()
+    end
     local languages = gen.keys(languages_supported)
     return self.language and gen.is_in(self.language, languages)
 end
@@ -420,11 +423,14 @@ local function open_tree(pane)
     local conf = NavBufConf(main_pane)
     mainpanes[main_id] = conf
 
-    micro.Log('  conf.lang= '..tostring(conf.language))
+    micro.Log('  conf.lang = '..tostring(conf.language))
     if not conf:supported() then
+        micro.Log('  language not supported')
         micro.InfoBar():Error(DISPLAY_NAME..": "..conf.language.." language is currently not supported.")
         return
     end
+
+    micro.Log('  splitting the screen')
 
     -- Open a new Vsplit (on the very left)
     local name = main_pane.Buf:GetName()
@@ -476,6 +482,8 @@ local function open_tree(pane)
     for k, cnf in pairs(treepanes) do
         micro.Log('  treepanes['..k..']: '..tostring(cnf))
     end
+
+    local tab = main_pane:Tab():Resize()
 
     micro.Log('< open_tree')
 end
@@ -593,7 +601,6 @@ function onBufferOpen(buf)
 --
         -- local conf = mainpanes[pane_id]
 
-
         local main_pane = micro.CurPane()
         micro.Log('  CurPane: '..nvb_str(main_pane))
         micro.Log('  CurPane.Buf:GetName(): '..main_pane.Buf:GetName())
@@ -612,13 +619,19 @@ function onBufferOpen(buf)
             -- toggle_tree(nil)
         -- end
 --]]
-
     end
     micro.Log('< onBufferOpen')
 end
 
 function onBufPaneOpen(pane)
     micro.Log('> onBufPaneOpen('..nvb_str(pane)..')')
+--[[
+    local main_id = nvb_str(pane)
+    local open_on_start = get_option_among_list(pane.Buf, 'navbar.openonstart', {true, false}, false)
+    if open_on_start then
+        toggle_tree(pane)
+    end
+--]]
     micro.Log('< onBufPaneOpen')
 end
 
@@ -938,6 +951,9 @@ function init()
     -- NOTE: This must be below the syntax load command or coloring won't work
     -- Just auto-open if the option is enabled
     -- This will run when the plugin first loads
+---[[
+    -- Note: this works only for the current pane on display, not for any other
+    -- pane that might have been open at the same time.
     local main_pane = micro.CurPane()
     local main_id = nvb_str(main_pane)
     local open_on_start = get_option_among_list(main_pane.Buf, 'navbar.openonstart', {true, false}, false)
@@ -954,5 +970,6 @@ function init()
             micro.Log("Warning: navbar.openonstart was enabled, but somehow the tree was already open so the option was ignored.")
         end
     end
+--]]
     micro.Log('< init')
 end
