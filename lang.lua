@@ -1,25 +1,23 @@
 --- @module navbar.lang
 
 -- Detecting the operating system to update the package.path
+-- Note: we need to add this at the begining of all modules loaded when micro
+-- start (the modules to add language support do not need it because they are
+-- loaded later). Therefore we can only use pure lua and not any of the go
+-- functions provided by micro (because the only module that depends on micro
+-- is navbar.lua, the others are independant of micro).
 if not OS_TYPE then
     rawset(_G, "OS_TYPE",  (os.getenv("WINDIR") and 'windows') or 'posix')
-    rawset(_G, "PATH_SEP",
-        ((OS_TYPE == 'windows') and '\\') or
-        ((OS_TYPE == 'posix') and '/')
-    )
-    rawset(_G, "PATH_PLUGIN", nil)
-
-    local pkg_path_sep
+    rawset(_G, "NVB_PATH", nil)
+    local path_list_sep_lua = ';'
     if OS_TYPE == 'posix' then
-        pkg_path_sep = ';'
-        PATH_PLUGIN = os.getenv("HOME")..'/.config/micro/plug/navbar/'
+        NVB_PATH = os.getenv("HOME")..'/.config/micro/plug/navbar/'
     elseif OS_TYPE == 'windows' then
-        pkg_path_sep = ':'
-        PATH_PLUGIN = nil
+        NVB_PATH = nil
     end
-    if PATH_PLUGIN then
-        if not string.find(package.path, PATH_PLUGIN) then
-            package.path = PATH_PLUGIN .. "?.lua" .. pkg_path_sep .. package.path
+    if NVB_PATH then
+        if not string.find(package.path, NVB_PATH) then
+            package.path = NVB_PATH .. "?.lua" .. path_list_sep_lua .. package.path
         end
     else
         error("Unsupported platform at the moment.")

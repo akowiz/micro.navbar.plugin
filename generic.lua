@@ -15,7 +15,7 @@ end
 
 --- Replace a string by another one (escape the punctuation).
 -- @treturn string The escaped string
-function string:replace(from, into)
+function string:replace_all(from, into)
     return self:gsub(from:escape_punctuation(), into)
 end
 

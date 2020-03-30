@@ -3,38 +3,36 @@ VERSION = "0.0.1"
 --- @module navbar
 
 -- Detecting the operating system to update the package.path
+-- Note: we need to add this at the begining of all modules loaded when micro
+-- start (the modules to add language support do not need it because they are
+-- loaded later). Therefore we can only use pure lua and not any of the go
+-- functions provided by micro (because the only module that depends on micro
+-- is navbar.lua, the others are independant of micro).
 if not OS_TYPE then
     rawset(_G, "OS_TYPE",  (os.getenv("WINDIR") and 'windows') or 'posix')
-    rawset(_G, "PATH_SEP",
-        ((OS_TYPE == 'windows') and '\\') or
-        ((OS_TYPE == 'posix') and '/')
-    )
-    rawset(_G, "PATH_PLUGIN", nil)
-
-    local pkg_path_sep
+    rawset(_G, "NVB_PATH", nil)
+    local path_list_sep_lua = ';'
     if OS_TYPE == 'posix' then
-        pkg_path_sep = ';'
-        PATH_PLUGIN = os.getenv("HOME")..'/.config/micro/plug/navbar/'
+        NVB_PATH = os.getenv("HOME")..'/.config/micro/plug/navbar/'
     elseif OS_TYPE == 'windows' then
-        pkg_path_sep = ':'
-        PATH_PLUGIN = nil
+        NVB_PATH = nil
     end
-    if PATH_PLUGIN then
-        if not string.find(package.path, PATH_PLUGIN) then
-            package.path = PATH_PLUGIN .. "?.lua" .. pkg_path_sep .. package.path
+    if NVB_PATH then
+        if not string.find(package.path, NVB_PATH) then
+            package.path = NVB_PATH .. "?.lua" .. path_list_sep_lua .. package.path
         end
     else
         error("Unsupported platform at the moment.")
     end
 end
 
-
 local micro  = import("micro")
 local config = import("micro/config")
 local util   = import("micro/util")
 local buffer = import("micro/buffer")
-local gos    = import("os")
 
+local gos    = import("os")
+local gpath  = import("path/filepath")
 
 local gen = require('generic')
 
@@ -46,12 +44,10 @@ local treepanes = {} -- table of NavBufConf objects indexes by nvb_str(tree_pane
 local init_started = false
 local languages_supported = {}
 
-local usr_local_share
-if OS_TYPE == 'posix' then
-    usr_local_share = os.getenv("HOME").."/.local/share/micro/navbar/"
-elseif OS_TYPE == 'windows' then
-    usr_local_share = nil
-end
+local path_sep = string.char(gos.PathSeparator)
+
+local usr_local_share = gpath.Join(os.getenv("HOME"), '.local', 'share', 'micro', 'navbar')
+
 
 -------------------------------------------------------------------------------
 
@@ -72,11 +68,11 @@ local function buf_str(buf)
 end
 
 local function convert_filename(filename)
-    return filename:replace(PATH_SEP, '%') .. '.closed'
+    return filename:replace_all(path_sep, '%') .. '.closed'
 end
 
 local function get_languages_supported()
-    local dir = PATH_PLUGIN .. 'supported'
+    local dir = gpath.Join(NVB_PATH, 'supported')
     micro.Log('  directory to scan = '..dir)
     local list = {}
     for _, file in ipairs(gen.scandir_posix(dir)) do
@@ -132,7 +128,8 @@ function NavBufConf:closed_load()
     if not self.persistent then
         return
     end
-    local filename = usr_local_share..convert_filename(self.main_pane.Buf.AbsPath)
+    local abspath = self.main_pane.Buf.AbsPath
+    local filename = gpath.Join(usr_local_share, convert_filename(abspath))
     local closed_nodes = {}
 
     -- create the directry if it doesn't exists
@@ -160,7 +157,8 @@ function NavBufConf:closed_save()
     if not self.persistent then
         return
     end
-    local filename = usr_local_share..convert_filename(self.main_pane.Buf.AbsPath)
+    local abspath = self.main_pane.Buf.AbsPath
+    local filename = gpath.Join(usr_local_share, convert_filename(abspath))
 
     -- create the directry if it doesn't exists
     micro.Log("  mkdir "..usr_local_share)
@@ -340,7 +338,7 @@ local function refresh_structure(pane)
 
         conf.root = nil
         if not languages_supported[language].func then
-            local required = 'supported'..PATH_SEP..language
+            local required = gpath.Join('supported', language)
             micro.Log(' required='..required)
             local mod = require(required)
             languages_supported[language].func = mod.export_structure
@@ -900,9 +898,13 @@ end
 --- Initialize the navbar plugin.
 function init()
     micro.Log('> init')
+    micro.Log('  nvb_path = '..NVB_PATH)
+    micro.Log('  usr_local_share = '..usr_local_share)
+
     init_started = true
 
     languages_supported = get_languages_supported()
+
 
     config.AddRuntimeFile("navbar", config.RTHelp, "help/navbar.md")
     config.AddRuntimeFile("navbar", config.RTSyntax, "syntax.yaml")
