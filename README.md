@@ -1,8 +1,8 @@
 # Micro Navbar Plugin
 
-Navigation bar listing symbols such as classes, functions, variables, etc. the the micro editor (https://micro-editor.github.io/).
+Navigation bar listing symbols such as classes, functions, variables, etc. the the ![micro editor] (https://micro-editor.github.io/).
 
-![Navbar Plugin in Action](assets/micro.navbar.gif)
+![Navbar Plugin in Action](micro.navbar.gif)
 
 
 Supported Languages
