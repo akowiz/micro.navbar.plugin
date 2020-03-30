@@ -109,7 +109,6 @@ For the go language, you would want to generate a tree like:
         Variable1
         Variable2
 ```
-
 That's it.
 
 
