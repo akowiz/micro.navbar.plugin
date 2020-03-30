@@ -1,6 +1,6 @@
 # Micro Navbar Plugin
 
-Navigation bar listing symbols such as classes, functions, variables, etc. the the ![micro editor] (https://micro-editor.github.io/).
+Navigation bar listing symbols such as classes, functions, variables, etc. the the ![micro editor](https://micro-editor.github.io/).
 
 ![Navbar Plugin in Action](micro.navbar.gif)
 
@@ -21,10 +21,10 @@ How to use the plugin
 
 4. A side window will appear with the structure of your file. You can navigate like in a normal buffer (using arrows, page up/down, find, etc.). You also have a few keybindings to make better use of the sidebar:
 
--- To jump to an object, select it in the sidebar and press 'g' (or use command `nvb_goto`).
--- To close all nodes, press 'c' (or use command `nvb_close_all`).
--- to open all nodes, press 'o' (or use command `nvb_open_all`).
--- to toggle a node between open and close (showing or not its children), press ' ' (or use command `nvb_toggle`).
+    - To jump to an object, select it in the sidebar and press 'g' (or use command `nvb_goto`).
+    - To close all nodes, press 'c' (or use command `nvb_close_all`).
+    - to open all nodes, press 'o' (or use command `nvb_open_all`).
+    - to toggle a node between open and close (showing or not its children), press ' ' (or use command `nvb_toggle`).
 
 You can change the keys for the actions in settings.json of micro. You can specify the theme to use for the tree, etc.)
 
