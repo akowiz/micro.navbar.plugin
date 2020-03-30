@@ -2,7 +2,7 @@
 
 The navbar plugin provides the user with the ability to navigate through a programming file using the symbols defined in the buffer such as classes, functions, variables, etc. This is extremely usefull for very long files or when exploring a new file to have a better idea of the content of the file.
 
-Each programming language defines its own syntax for defining objects, classes, functions, etc. Therefore, support for a programming language is not automatic. See https://github.com/akowiz/micro.navbar.plugin on how you can contribute support for your favorite programming language.
+Each programming language defines its own syntax for defining objects, classes, functions, etc. Therefore, support for a programming language is not automatic. See https://github.com/akowiz/micro.navbar.plugin on how you can contribute to add support for your favorite programming language.
 
 Currently, the languages supported are:
 
