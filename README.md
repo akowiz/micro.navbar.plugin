@@ -7,7 +7,7 @@ Navigation bar listing symbols such as classes, functions, variables, etc. the t
 
 Supported Languages
 -------------------
-At the moment, only python and lua programming language are supported, but it should be possible to add support for more programming languages (see below). Because I am using a line parser with some regular expressions, the plugin might not work with some/your coding style. Hopefully one day we will be using a proper parser to extract the relevant information.
+At the moment, only python and lua programming language are supported, but it should be possible to add support for more programming languages (see below). Because I am using a line parser with some regular expressions, the plugin might not work with some coding style. Hopefully one day we will be using a proper parser to extract the relevant information.
 
 
 How to use the plugin
