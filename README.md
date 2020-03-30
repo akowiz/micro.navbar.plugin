@@ -28,7 +28,6 @@ How to use the plugin
 
 You can change the keys for the actions in settings.json of micro. You can specify the theme to use for the tree, etc.)
 
-
 There are 3 styles defined to display the tree: 'bare', 'ascii' and 'box'
 ```
 * 'bare' style *
@@ -132,6 +131,7 @@ Settings
 - treeview_rune_toggle: string (single letter), the key to use in the tree_view to toggle a node with children between open and closed. Default to ' ' (space bar).
 
 
-Known Bugs
-----------
+Known Bugs and Design Choice
+----------------------------
+- The structure of the navbar is only updated whenever you save the main buffer (to avoid micro spending its time continuously updating the navbar). If when press 'g' (or use the `nvb_goto` command) you don't reach the appropriate line with the symbol, this is probably because you have added/removed content to the buffer and you have not saved the buffer yet). 
 - The 'openonstart' setting can be specified on a per-filetype basis, unfortunately, there is a small issue with micro at the moment (https://github.com/zyedidia/micro/issues/1596) that prevent it from working for buffers created after micro has started. It does work for the file (specified on the command line) that will be displayed by micro.
