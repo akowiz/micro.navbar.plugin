@@ -5,8 +5,8 @@
   "Website": "https://github.com/akowiz/micro.navbar.plugin",
   "Versions": [
     {
-      "Version": "0.0.1-alpha",
-      "Url": "https://github.com/akowiz/micro.navbar.plugin/archive/v0.0.1-alpha.zip",
+      "Version": "0.0.1-beta",
+      "Url": "https://github.com/akowiz/micro.navbar.plugin/archive/v0.0.1-beta.zip",
       "Require": {
         "micro": ">=2.0.0-1"
       }
