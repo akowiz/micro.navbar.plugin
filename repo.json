@@ -1,12 +1,12 @@
 [{
   "Name": "navbar",
-  "Description": "Plugin to navigate through a file symbols using a sidebar menu.",
+  "Description": "Plugin to navigate through a file symbols using a sidebar.",
   "Tags": ["navigation", "classes", "constants", "functions", "objects", "variables", "lua", "python"],
-  "Website": "https://github.com/akowiz/micro.navbar",
+  "Website": "https://github.com/akowiz/micro.navbar.plugin",
   "Versions": [
     {
-      "Version": "0.0.1",
-      "Url": "https://github.com/akowiz/archive/v0.0.1.zip",
+      "Version": "0.0.1-alpha",
+      "Url": "https://github.com/akowiz/micro.navbar.plugin/archive/v0.0.1-alpha.zip",
       "Require": {
         "micro": ">=2.0.0-1"
       }
