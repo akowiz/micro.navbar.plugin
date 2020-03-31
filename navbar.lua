@@ -911,6 +911,7 @@ end
 --- Initialize the navbar plugin.
 function init()
     micro.Log('> init')
+
     micro.Log('  nvb_path = '..NVB_PATH)
     micro.Log('  usr_local_share = '..usr_local_share)
 

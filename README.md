@@ -17,7 +17,7 @@ How to use the plugin
 
 2. Open a file in a supported language (lua or python)
 
-3. Press F5 or use the command `navbar`
+3. Press `Alt-n` or use the command `navbar`
 
 4. A side window will appear with the structure of your file. You can navigate like in a normal buffer (using arrows, page up/down, find, etc.). You also have a few keybindings to make better use of the sidebar:
 
@@ -132,5 +132,5 @@ Settings
 
 Known Bugs and Design Choice
 ----------------------------
-- The structure of the navbar is only updated whenever you save the main buffer (to avoid micro spending its time continuously updating the navbar). If, when press 'g' (or use the `nvb_goto` command) you don't reach the appropriate line with the symbol, this is probably because you have added/removed content to the buffer and you have not saved the buffer yet). 
+- The structure of the navbar is only updated whenever you save the main buffer (to avoid micro spending its time continuously updating the navbar). If, when press 'g' (or use the `nvb_goto` command) you don't reach the appropriate line with the symbol, this is probably because you have added/removed content to the buffer and you have not saved the buffer yet).
 - The 'openonstart' setting can be specified on a per-filetype basis, unfortunately, there is a small issue with micro at the moment (https://github.com/zyedidia/micro/issues/1596) that prevent it from working for buffers created after micro has started. It does work for the file (specified on the command line) that will be displayed by micro.
