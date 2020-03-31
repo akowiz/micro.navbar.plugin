@@ -32,11 +32,13 @@ local tree = require('tree')
 
 
 lg.T_NONE       = 0
-lg.T_OBJECT     = 1
-lg.T_CLASS      = 2
-lg.T_FUNCTION   = 3
-lg.T_VARIABLE   = 4
-lg.T_CONSTANT   = 5
+lg.T_PACKAGE    = 1
+lg.T_OBJECT     = 2
+lg.T_STRUCTURE  = 3
+lg.T_CLASS      = 4
+lg.T_FUNCTION   = 5
+lg.T_VARIABLE   = 6
+lg.T_CONSTANT   = 7
 
 local DEBUG = false
 
