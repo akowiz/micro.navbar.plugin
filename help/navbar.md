@@ -6,8 +6,12 @@ Each programming language defines its own syntax for defining objects, classes, 
 
 Currently, the languages supported are:
 
-- Lua (partially)
-- Python
+- Go*
+- Lua*
+- Python**
+
+* Partially: some items might not be displayed properly in the structure.
+** Python has better support because of the rigid syntax of the language.
 
 To toggle the side window with the navigation bar, simply press `Alt-n` (or use command `navbar`).
 
