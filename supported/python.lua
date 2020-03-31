@@ -1,4 +1,4 @@
---- @module navbar.lang_python
+--- @module navbar.supported.python
 
 local lgp = {}
 

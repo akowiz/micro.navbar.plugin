@@ -1,4 +1,4 @@
---- @module navbar.lang_lua
+--- @module navbar.supported.lua
 
 local lgl = {}
 
