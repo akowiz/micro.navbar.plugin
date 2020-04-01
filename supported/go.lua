@@ -66,7 +66,8 @@ function lgg.match_go_item(line)
 
         -- match a variable
         -- - this break on lines with multiple definitions.
-        -- - this break on variables defined without var keyword.
+        -- - this break on variables defined without var keyword (such as with :=)
+        -- - this break on variables defined in bulk with var (a int, b string)
         name = string.match(line, "^var%s+([_%w]+)%s*$")
         if name then
             kind = lg.T_VARIABLE
